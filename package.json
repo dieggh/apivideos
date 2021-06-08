@@ -4,7 +4,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "ts-node-dev src/app.ts"
   },
   "repository": {
     "type": "git",
@@ -18,9 +19,18 @@
   "homepage": "https://gitlab.com/diegg/apivideos#readme",
   "dependencies": {
     "express": "^4.17.1",
+    "express-validator": "^6.11.1",
     "jsonwebtoken": "^8.5.1",
     "mysql2": "^2.2.5",
     "node-fetch": "^2.6.1",
     "sequelize": "^6.6.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.12",
+    "@types/express-validator": "^3.0.0",
+    "@types/node": "^15.12.2",
+    "@types/node-fetch": "^2.5.10",
+    "@types/sequelize": "^4.28.9",
+    "ts-node-dev": "^1.1.6"
   }
 }
