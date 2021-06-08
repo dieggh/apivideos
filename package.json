@@ -1,0 +1,26 @@
+{
+  "name": "apivideos",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@gitlab.com/diegg/apivideos.git"
+  },
+  "author": "Diego Humberto Castro Castro",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/diegg/apivideos/issues"
+  },
+  "homepage": "https://gitlab.com/diegg/apivideos#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "mysql2": "^2.2.5",
+    "node-fetch": "^2.6.1",
+    "sequelize": "^6.6.2"
+  }
+}
