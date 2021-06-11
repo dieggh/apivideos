@@ -3,7 +3,7 @@ import { sequelize } from '../utils/database';
 import { CategoriaCapituloModel } from './CategoriaCapitulo';
 
 interface CapituloAttributes{    
-    idCapitulo: number;
+    id: number;
     nombre: string;
     desc: string;
     tipo: string;
@@ -13,7 +13,7 @@ interface CapituloAttributes{
     ip: string;
 }   
 
-interface CapituloCreationAttributes extends Optional<CapituloAttributes, "idCapitulo"| "duracion">{}
+interface CapituloCreationAttributes extends Optional<CapituloAttributes, "id"| "duracion">{}
 
 
 // We need to declare an interface for our model that is basically what our class would be
@@ -22,7 +22,7 @@ interface CapituloInstance
     CapituloAttributes {}
 
 const CapituloModel = sequelize.define<CapituloInstance>("Capitulo", {
-    idCapitulo: {
+    id: {
       primaryKey: true,
       type: DataTypes.INTEGER.UNSIGNED,
     },
@@ -48,7 +48,8 @@ const CapituloModel = sequelize.define<CapituloInstance>("Capitulo", {
       type: DataTypes.STRING(54)
     }        
   },{    
-    timestamps: true
+    timestamps: true,
+    freezeTableName: true
   });
 
   CapituloModel.belongsTo(CategoriaCapituloModel);

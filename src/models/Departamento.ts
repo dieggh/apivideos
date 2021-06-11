@@ -3,13 +3,13 @@ import { sequelize } from './../utils/database';
 import { AdministradorModel } from './Administrador';
 
 interface DepartamentoAttributes{    
-    idDepartamento: number;
+    id: number;
     nombre: string;
     estatus: string;
     ip: string;
 }   
 
-interface DepartamentoCreationAttributes extends Optional<DepartamentoAttributes, "idDepartamento"> {}
+interface DepartamentoCreationAttributes extends Optional<DepartamentoAttributes, "id"> {}
 
 // We need to declare an interface for our model that is basically what our class would be
 interface DepartamentoInstance
@@ -17,7 +17,7 @@ interface DepartamentoInstance
     DepartamentoAttributes {}
 
 const DepartamentoModel = sequelize.define<DepartamentoInstance>("Departamento", {
-    idDepartamento: {
+    id: {
       primaryKey: true,
       type: DataTypes.INTEGER.UNSIGNED,
     },
@@ -32,11 +32,12 @@ const DepartamentoModel = sequelize.define<DepartamentoInstance>("Departamento",
     }
         
   },{    
-    timestamps: true
+    timestamps: true,
+    freezeTableName: true
   });
 
   
-  DepartamentoModel.belongsTo(AdministradorModel, { foreignKey: 'idAdministrador' });
-  AdministradorModel.hasMany(DepartamentoModel, { foreignKey: 'idAdministrador' });
+  DepartamentoModel.belongsTo(AdministradorModel);
+  AdministradorModel.hasMany(DepartamentoModel);
 
   export { DepartamentoModel };

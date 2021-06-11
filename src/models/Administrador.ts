@@ -4,11 +4,12 @@ import { PersonaModel } from './Persona';
 import { UsuarioModel } from './Usuario';
 
 interface AdministradorAttributes{    
-    idAdministrador: number;
-    nivelAcceso: number
+    id: number;
+    nivelAcceso: number;
+    
 }   
 
-interface AdministradorCreationAttributes extends Optional<AdministradorAttributes, "idAdministrador"> {}
+interface AdministradorCreationAttributes extends Optional<AdministradorAttributes, "id"> {}
 
 // We need to declare an interface for our model that is basically what our class would be
 interface AdministradorInstance
@@ -16,7 +17,7 @@ interface AdministradorInstance
     AdministradorAttributes {}
 
 const AdministradorModel = sequelize.define<AdministradorInstance>("Administrador", {
-    idAdministrador: {
+    id: {
       primaryKey: true,
       type: DataTypes.INTEGER.UNSIGNED,
     },
@@ -25,7 +26,8 @@ const AdministradorModel = sequelize.define<AdministradorInstance>("Administrado
     }
         
   },{    
-    timestamps: true
+    timestamps: true,
+    freezeTableName: true
   });
 
   AdministradorModel.belongsTo(PersonaModel);

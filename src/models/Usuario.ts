@@ -2,13 +2,13 @@ import { Model ,Optional, DataTypes } from 'sequelize';
 import { sequelize } from './../utils/database';
 
 interface UsuarioAttributes{    
-    idUsuario: number;    
+    id: number;    
     password: string;   
     email: string;
     estatus: string;   
 }   
 
-interface UsuarioCreationAttributes extends Optional<UsuarioAttributes, "idUsuario"> {}
+interface UsuarioCreationAttributes extends Optional<UsuarioAttributes, "id"> {}
 
 // We need to declare an interface for our model that is basically what our class would be
 interface UsuarioInstance
@@ -16,7 +16,7 @@ interface UsuarioInstance
     UsuarioAttributes {}
 
 const UsuarioModel = sequelize.define<UsuarioInstance>("Usuario", {
-    idUsuario: {
+    id: {
       primaryKey: true,
       type: DataTypes.INTEGER.UNSIGNED,
     },
@@ -31,7 +31,8 @@ const UsuarioModel = sequelize.define<UsuarioInstance>("Usuario", {
     },   
         
   },{    
-    timestamps: true
+    timestamps: true,
+    freezeTableName: true
   });
 
   export { UsuarioModel };

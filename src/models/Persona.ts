@@ -2,17 +2,17 @@ import { Model ,Optional, DataTypes } from 'sequelize';
 import { sequelize } from './../utils/database';
 
 interface PersonaAttributes{    
-    idPersona: number;
+    id: number;
     nombre: string;
     primerAp: string;
-    segundoAp: string;
+    segundoAp: string | null;
     email: string;
-    foto: string | null;   
+    telefono: string | null;
     estatus: string;
     ip: string;
 }   
 
-interface PersonaCreationAttributes extends Optional<PersonaAttributes, "idPersona"> {}
+interface PersonaCreationAttributes extends Optional<PersonaAttributes, "id"> {}
 
 // We need to declare an interface for our model that is basically what our class would be
 interface PersonaInstance
@@ -20,7 +20,7 @@ interface PersonaInstance
     PersonaAttributes {}
 
 const PersonaModel = sequelize.define<PersonaInstance>("Persona", {
-    idPersona: {
+    id: {
       primaryKey: true,
       type: DataTypes.INTEGER.UNSIGNED,
     },
@@ -31,15 +31,15 @@ const PersonaModel = sequelize.define<PersonaInstance>("Persona", {
         type: DataTypes.STRING
     },
     segundoAp:{
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
+        allowNull: true
     },
     email:{
         type: DataTypes.STRING,
         unique: true 
     },
-    foto:{
-        type: DataTypes.STRING,
-        allowNull: true
+    telefono:{
+      type: DataTypes.STRING(10),
     },
     estatus:{
         type: DataTypes.CHAR(1)
@@ -49,7 +49,8 @@ const PersonaModel = sequelize.define<PersonaInstance>("Persona", {
     }
         
   },{    
-    timestamps: true
+    timestamps: true,
+    freezeTableName: true
   });
 
   export { PersonaModel };
