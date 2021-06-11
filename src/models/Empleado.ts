@@ -25,10 +25,10 @@ const EmpleadoModel = sequelize.define<EmpleadoInstance>("Empleado", {
     timestamps: true
   });
 
-  EmpleadoModel.belongsTo(PersonaModel);
-  PersonaModel.hasMany(EmpleadoModel);
+  EmpleadoModel.belongsTo(PersonaModel, { foreignKey: 'idPersona' });
+  PersonaModel.hasMany(EmpleadoModel, { foreignKey: 'idPersona' });
 
-  EmpleadoModel.belongsTo(UsuarioModel);
-  UsuarioModel.hasOne(EmpleadoModel);
+  EmpleadoModel.belongsTo(UsuarioModel, { foreignKey: 'idUsuario' });
+  UsuarioModel.hasOne(EmpleadoModel, { foreignKey: 'idUsuario' });
 
   export { EmpleadoModel };

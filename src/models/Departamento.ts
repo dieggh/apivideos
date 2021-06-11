@@ -1,5 +1,6 @@
 import { Model ,Optional, DataTypes } from 'sequelize';
 import { sequelize } from './../utils/database';
+import { AdministradorModel } from './Administrador';
 
 interface DepartamentoAttributes{    
     idDepartamento: number;
@@ -33,5 +34,9 @@ const DepartamentoModel = sequelize.define<DepartamentoInstance>("Departamento",
   },{    
     timestamps: true
   });
+
+  
+  DepartamentoModel.belongsTo(AdministradorModel, { foreignKey: 'idAdministrador' });
+  AdministradorModel.hasMany(DepartamentoModel, { foreignKey: 'idAdministrador' });
 
   export { DepartamentoModel };

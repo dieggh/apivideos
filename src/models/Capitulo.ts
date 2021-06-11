@@ -1,15 +1,20 @@
 import { Model ,Optional, DataTypes } from 'sequelize';
 import { sequelize } from '../utils/database';
-import { CategoriaVideoModel } from './CategoriaVideo';
+import { CategoriaCapituloModel } from './CategoriaCapitulo';
 
 interface CapituloAttributes{    
     idCapitulo: number;
     nombre: string;
+    desc: string;
+    tipo: string;
+    path: string;
+    duracion?: string;
     estatus: string;
     ip: string;
 }   
 
-interface CapituloCreationAttributes extends Optional<CapituloAttributes, "idCapitulo"> {}
+interface CapituloCreationAttributes extends Optional<CapituloAttributes, "idCapitulo"| "duracion">{}
+
 
 // We need to declare an interface for our model that is basically what our class would be
 interface CapituloInstance
@@ -24,6 +29,18 @@ const CapituloModel = sequelize.define<CapituloInstance>("Capitulo", {
     nombre: {
       type: DataTypes.STRING,
     },
+    desc: {
+      type: DataTypes.TEXT,
+    },
+    tipo: {
+      type: DataTypes.STRING,
+    },
+    path: {
+      type: DataTypes.STRING,
+    },
+    duracion:{
+      type: DataTypes.INTEGER,
+    },
     estatus:{
         type: DataTypes.CHAR(1)
     },
@@ -34,7 +51,7 @@ const CapituloModel = sequelize.define<CapituloInstance>("Capitulo", {
     timestamps: true
   });
 
-  CapituloModel.belongsTo(CategoriaVideoModel);
-  CategoriaVideoModel.hasMany(CapituloModel);
+  CapituloModel.belongsTo(CategoriaCapituloModel);
+  CategoriaCapituloModel.hasMany(CapituloModel);
 
   export { CapituloModel };
