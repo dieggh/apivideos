@@ -1,5 +1,6 @@
 import { Model ,Optional, DataTypes } from 'sequelize';
 import { sequelize } from '../utils/database';
+import { AdministradorModel } from './Administrador';
 
 interface CategoriaCapituloAttributes{    
     id: number;
@@ -38,5 +39,8 @@ const CategoriaCapituloModel = sequelize.define<CategoriaCapituloInstance>("Cate
     timestamps: true,
     freezeTableName: true
   });
+
+  CategoriaCapituloModel.belongsTo(AdministradorModel);
+  AdministradorModel.hasMany(CategoriaCapituloModel);
 
   export { CategoriaCapituloModel };
