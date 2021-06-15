@@ -1,5 +1,7 @@
 import { Model ,Optional, DataTypes } from 'sequelize';
 import { sequelize } from './../utils/database';
+import { Administrador } from './Administrador';
+import { Empleado } from './Empleado';
 
 interface UsuarioAttributes{    
     id: number;    
@@ -7,6 +9,7 @@ interface UsuarioAttributes{
     email: string;
     nivelAcceso: number;
     estatus: string;   
+    token: string
 }   
 
 interface UsuarioCreationAttributes extends Optional<UsuarioAttributes, "id" | "estatus"> {}
@@ -19,12 +22,13 @@ class Usuario extends Model<UsuarioAttributes, UsuarioCreationAttributes>
     public email!: string;
     public nivelAcceso!: number;    
     public estatus!: string;
-    
+    public token!: string;
+
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
 
-    public readonly empleado?: Usuario[]; // Note this is optional since it's only populated when explicitly requested in code
-    public readonly administrador?: Usuario[]; // Note this is optional since it's only populated when explicitly requested in code
+    public readonly empleado?: Empleado; // Note this is optional since it's only populated when explicitly requested in code
+    public readonly administrador?: Administrador; // Note this is optional since it's only populated when explicitly requested in code
   }
 
   Usuario.init(
@@ -49,6 +53,10 @@ class Usuario extends Model<UsuarioAttributes, UsuarioCreationAttributes>
       estatus:{
           type: DataTypes.CHAR(1),
           defaultValue: "1"
+      },
+      token:{
+        type: DataTypes.STRING,
+        allowNull: true
       }
     },
     {

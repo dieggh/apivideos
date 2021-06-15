@@ -1,5 +1,5 @@
 const config = {
-    keySecret: "agregar.una.contraseña.hashed"
+    KEY_SECRET: "agregar.una.contraseña.hashed"
 };
 
 export {

@@ -1,43 +1,64 @@
-import { Model ,Optional, DataTypes } from 'sequelize';
+import { Model ,Optional, DataTypes, HasOneGetAssociationMixin } from 'sequelize';
 import { sequelize } from './../utils/database';
-import { AdministradorModel } from './Administrador';
+import { Administrador } from './Administrador';
+import { Empleado } from './Empleado';
 
 interface DepartamentoAttributes{    
     id: number;
     nombre: string;
+    descripcion: string | null;
     estatus: string;
     ip: string;
 }   
 
-interface DepartamentoCreationAttributes extends Optional<DepartamentoAttributes, "id"> {}
+interface DepartamentoCreationAttributes extends Optional<DepartamentoAttributes, "id" | "estatus"> {}
 
-// We need to declare an interface for our model that is basically what our class would be
-interface DepartamentoInstance
-  extends Model<DepartamentoAttributes, DepartamentoCreationAttributes>,
-    DepartamentoAttributes {}
+class Departamento extends Model<DepartamentoAttributes, DepartamentoCreationAttributes>
+  implements DepartamentoAttributes{
+    public id!: number;
+    public nombre!: string;
+    public descripcion!: string;
+    public estatus!: string;
+    public ip!: string;
 
-const DepartamentoModel = sequelize.define<DepartamentoInstance>("Departamento", {
-    id: {
-      primaryKey: true,
-      type: DataTypes.INTEGER.UNSIGNED,
-    },
-    nombre: {
-      type: DataTypes.STRING,
-    },
-    estatus:{
-        type: DataTypes.CHAR(1)
-    },
-    ip: {
-      type: DataTypes.STRING(54)
+    public getAdministrador!: HasOneGetAssociationMixin<Administrador>; // Note the null assertions!        
+    
+    public readonly createdAt!: Date;
+    public readonly updatedAt!: Date;
+
+    public readonly administrador?: Administrador; // Note this is optional since it's only populated when explicitly requested in code
+    public readonly empleados?: Empleado; // Note this is optional since it's only populated when explicitly requested in code
+
+  }
+
+  Departamento.init(
+    {
+      id:{
+        type: DataTypes.INTEGER.UNSIGNED,
+        autoIncrement: true,
+        primaryKey: true
+      },
+      nombre: {
+        type: new DataTypes.STRING(128),
+        allowNull: false,
+      },
+      descripcion: {
+        type: new DataTypes.TEXT,
+        allowNull: true,
+      },
+      estatus: {
+        type: new DataTypes.CHAR(1),
+        allowNull: false,
+        defaultValue: '1'
+      },
+      ip: {
+        type: new DataTypes.STRING,
+        allowNull: false,
+      },
+    },{
+      tableName: "Departamento",
+      sequelize
     }
-        
-  },{    
-    timestamps: true,
-    freezeTableName: true
-  });
+  )
 
-  
-  DepartamentoModel.belongsTo(AdministradorModel);
-  AdministradorModel.hasMany(DepartamentoModel);
-
-  export { DepartamentoModel };
+  export { Departamento };

@@ -34,6 +34,7 @@ class PersonaValidation extends RequestValidation{
                         return Promise.reject("El Correo Electrónico ya está en Uso");
                     }    
                 } catch (error) {
+                    console.log(error)
                     return Promise.reject("Error del Servidor");
                 }                
             }),
@@ -74,5 +75,11 @@ class EmpleadoValidation extends RequestValidation {
     }
 }
 
+class DepartamentoValidation extends RequestValidation {
+    validation = [
+        body('nombre')
+            .notEmpty().withMessage("Campo Requerido")                    
+    ]
+}
 
-export { PersonaValidation, EmpleadoValidation };
+export { PersonaValidation, EmpleadoValidation, DepartamentoValidation };

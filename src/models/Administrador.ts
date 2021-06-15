@@ -1,5 +1,6 @@
-import { Model ,Optional, DataTypes, HasOneCreateAssociationMixin, Association } from 'sequelize';
+import { Model ,Optional, DataTypes, HasOneCreateAssociationMixin, Association, HasManyGetAssociationsMixin } from 'sequelize';
 import { sequelize } from './../utils/database';
+import { Departamento } from './Departamento';
 import { Persona } from './Persona';
 import { Usuario } from './Usuario';
 
@@ -20,13 +21,15 @@ class Administrador extends Model<AdministradorAttributes, AdministradorCreation
 
     public readonly persona?: Persona; // Note this is optional since it's only populated when explicitly requested in code
     public readonly usuario?: Usuario; // Note this is optional since it's only populated when explicitly requested in code
-    
+    public readonly departamentos?: Departamento[];
+
     public static associations: {
       persona: Association<Administrador, Persona>;
       usuario: Association<Administrador, Usuario>;
     };
 
     public createUsuario!: HasOneCreateAssociationMixin<Usuario>;
+    public getDepartamentos!: HasManyGetAssociationsMixin<Departamento>;
   }
 
   Administrador.init(
@@ -38,7 +41,7 @@ class Administrador extends Model<AdministradorAttributes, AdministradorCreation
       },
       noInterno: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
       }
     },
     {
@@ -78,5 +81,8 @@ const AdministradorModel = sequelize.define<AdministradorInstance>("Administrado
   Persona.hasOne(Administrador, { 
     foreignKey: 'idPersona',
   });
+
+  Departamento.belongsTo(Administrador);
+  Administrador.hasMany(Departamento);
 
   export { Administrador };
