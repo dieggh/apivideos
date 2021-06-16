@@ -2,7 +2,7 @@
 import { Request, Response } from 'express';
 import { Administrador } from '../models/Administrador';
 import { Persona } from '../models/Persona';
-import { UsuarioAttributes, Usuario } from '../models/Usuario';
+import {  Usuario } from '../models/Usuario';
 import { Password } from '../utils/password';
 import jwt from 'jsonwebtoken';
 import { Empleado } from '../models/Empleado';
@@ -38,6 +38,9 @@ const postSignIn = async (req: Request, res: Response) => {
 
         const empleado = await Empleado.findOne({
             attributes: ["id"],
+            where:{
+                estatus : '1'
+            },
             include:
             {
                 model: Usuario, as: 'usuario',
@@ -58,6 +61,9 @@ const postSignIn = async (req: Request, res: Response) => {
         } else {
             const admin = await Administrador.findOne({
                 attributes: ["id"],
+                where:{
+                    estatus: '1'
+                },
                 include:
                 {
                     model: Usuario, as: 'usuario',
@@ -219,10 +225,6 @@ const postSignUpTitular = async (req: Request, res: Response) => {
     }
 }
 
-const postSignUpEmpleado = () => {
-
-}
-
 const postRefreshToken = async (req: Request, res: Response) => {
     try {
         
@@ -234,35 +236,49 @@ const postRefreshToken = async (req: Request, res: Response) => {
             const decodedToken = jwt.decode(token) as refreshTokenDecoded;
             
             if ( Date.now() > decodedToken.exp * 1000 ) {
+                
                 const payload = jwt.verify(refreshToken, config.KEY_SECRET) as UserRefresh;
-
-                const user = await Usuario.findByPk(payload.id, {
-                    attributes: ["email", "id", "nivelAcceso", "estatus"],
-                    include: {
-                        model: payload.nivelAcceso === 0 ? Administrador : Empleado,
-                        attributes: ["id"]
+                
+                if(payload.id === decodedToken.id){
+                    const user = await Usuario.findByPk(payload.id, {
+                        attributes: ["email", "id", "nivelAcceso", "estatus", "token"],
+                        include: {
+                            model: payload.nivelAcceso === 0 ? Administrador : Empleado,
+                            attributes: ["id"]
+                        }
+                    });
+    
+                    if (user && user.estatus === "1" ) {
+                        if(user.token !== refreshToken){
+                            return res.status(401).send({
+                                status: false,
+                                message: "Token inválido"
+                            });
+                        }
+                        const typeUser = user.nivelAcceso === 0 ? "superAdmin" : user.nivelAcceso === 1 ? "admin" : "empleado";
+                        const token = jwt.sign({ email: user.email, id: user.id, nivelAcceso: user.nivelAcceso, typeUser, idKind: user.empleado ? user.empleado.id : user.administrador?.id }, config.KEY_SECRET, { expiresIn: '12h' });
+    
+                        const newRefreshToken = jwt.sign({ id: user.id, nivelAcceso: user.nivelAcceso }, config.KEY_SECRET, { expiresIn: '30 days' });
+    
+                        return res.status(200).send({
+                            status: true,
+                            token: token,
+                            refreshToken: newRefreshToken
+    
+                        })
+                    } else {
+                        res.status(401).send({
+                            status: false,
+                            message: "Usuario no Autorizado"
+                        })
                     }
-                });
-
-                if (user && user.estatus === "1") {
-                    const typeUser = user.nivelAcceso === 0 ? "superAdmin" : user.nivelAcceso === 1 ? "admin" : "empleado";
-                    const token = jwt.sign({ email: user.email, id: user.id, nivelAcceso: user.nivelAcceso, typeUser, idKind: user.empleado ? user.empleado.id : user.administrador?.id }, config.KEY_SECRET, { expiresIn: '12h' });
-
-                    const refreshToken = jwt.sign({ id: user.id, nivelAcceso: user.nivelAcceso }, config.KEY_SECRET, { expiresIn: '30 days' });
-
-                    return res.status(200).send({
-                        status: true,
-                        token: token,
-                        refreshToken: refreshToken
-
-                    })
-                } else {
-                    res.status(200).send({
+                }else{
+                    res.status(401).send({
                         status: false,
-                        message: "Usuario no Autorizado"
+                        message: "Token Inválido"
                     })
                 }
-
+               
             } else {
                 res.status(200).send({
                     status: false,
@@ -271,7 +287,7 @@ const postRefreshToken = async (req: Request, res: Response) => {
             }
 
         } else {
-            res.status(200).json({
+            res.status(401).json({
                 status: false,
                 message: "Token no proveido"
             });
@@ -286,7 +302,6 @@ const postRefreshToken = async (req: Request, res: Response) => {
 export {
     postSignIn,
     postSignUp,
-    postSignUpEmpleado,
     postRefreshToken,
     postSignUpTitular
 };

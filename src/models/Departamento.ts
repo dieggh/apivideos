@@ -1,4 +1,4 @@
-import { Model ,Optional, DataTypes, HasOneGetAssociationMixin } from 'sequelize';
+import { Model ,Optional, DataTypes, HasOneGetAssociationMixin, HasOneCreateAssociationMixin } from 'sequelize';
 import { sequelize } from './../utils/database';
 import { Administrador } from './Administrador';
 import { Empleado } from './Empleado';
@@ -22,6 +22,7 @@ class Departamento extends Model<DepartamentoAttributes, DepartamentoCreationAtt
     public ip!: string;
 
     public getAdministrador!: HasOneGetAssociationMixin<Administrador>; // Note the null assertions!        
+    public createDepartamento!: HasOneCreateAssociationMixin<Administrador>;
     
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;

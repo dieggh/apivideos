@@ -1,20 +1,24 @@
-import { Model ,Optional, DataTypes, HasOneCreateAssociationMixin, Association, HasManyGetAssociationsMixin } from 'sequelize';
+import { Model ,Optional, DataTypes, HasOneCreateAssociationMixin, Association, HasManyGetAssociationsMixin, HasManyCreateAssociationMixin } from 'sequelize';
 import { sequelize } from './../utils/database';
 import { Departamento } from './Departamento';
+import { Empleado } from './Empleado';
 import { Persona } from './Persona';
 import { Usuario } from './Usuario';
 
 interface AdministradorAttributes{    
     id: number;    
     noInterno: string | null,      
+    estatus: string
 }   
 
-interface AdministradorCreationAttributes extends Optional<AdministradorAttributes, "id"> {}
+interface AdministradorCreationAttributes extends Optional<AdministradorAttributes, "id" | "estatus"> {}
 
 class Administrador extends Model<AdministradorAttributes, AdministradorCreationAttributes>
   implements AdministradorAttributes{
     public id!: number;
     public noInterno!: string | null;
+    public estatus!: string;
+    public idAdministrador!: number;
 
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
@@ -22,6 +26,7 @@ class Administrador extends Model<AdministradorAttributes, AdministradorCreation
     public readonly persona?: Persona; // Note this is optional since it's only populated when explicitly requested in code
     public readonly usuario?: Usuario; // Note this is optional since it's only populated when explicitly requested in code
     public readonly departamentos?: Departamento[];
+    public readonly empleados?: Empleado[];
 
     public static associations: {
       persona: Association<Administrador, Persona>;
@@ -30,6 +35,8 @@ class Administrador extends Model<AdministradorAttributes, AdministradorCreation
 
     public createUsuario!: HasOneCreateAssociationMixin<Usuario>;
     public getDepartamentos!: HasManyGetAssociationsMixin<Departamento>;
+    public getEmpleados!: HasManyGetAssociationsMixin<Empleado>;
+    public createDepartamento!: HasManyCreateAssociationMixin<Departamento>;
   }
 
   Administrador.init(
@@ -42,6 +49,10 @@ class Administrador extends Model<AdministradorAttributes, AdministradorCreation
       noInterno: {
         type: DataTypes.STRING,
         allowNull: true,
+      },
+      estatus:{
+        type: DataTypes.CHAR(1),
+        defaultValue: '1'
       }
     },
     {
@@ -82,7 +93,10 @@ const AdministradorModel = sequelize.define<AdministradorInstance>("Administrado
     foreignKey: 'idPersona',
   });
 
-  Departamento.belongsTo(Administrador);
-  Administrador.hasMany(Departamento);
+  Departamento.belongsTo(Administrador,  { foreignKey:'idAdministrador', as: 'departamentos' });
+  Administrador.hasMany(Departamento, { foreignKey:'idAdministrador', as: 'departamentos' });
+
+  Empleado.belongsTo(Administrador,  { foreignKey:'idAdministrador', as: 'empleados' });
+  Administrador.hasMany(Empleado, { foreignKey:'idAdministrador', as: 'empleados' });
 
   export { Administrador };

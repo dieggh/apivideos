@@ -1,5 +1,6 @@
-import { Model ,Optional, DataTypes, Association } from 'sequelize';
+import { Model ,Optional, DataTypes, Association, HasOneCreateAssociationMixin, HasOneGetAssociationMixin } from 'sequelize';
 import { sequelize } from './../utils/database';
+import { Administrador } from './Administrador';
 import { EstadoModel } from './Estado';
 import { Persona } from './Persona';
 import { Usuario } from './Usuario';
@@ -14,27 +15,35 @@ interface EmpleadoAttributes{
     numInt: string | null;
     numExt: string | null;
     noInterno: string | null;  
-    idEstado: number  
+    estatus: string;
+    idEstado: number | null;  
 }   
 
-interface EmpleadoCreationAttributes extends Optional<EmpleadoAttributes, "id"> {}
+interface EmpleadoCreationAttributes extends Optional<EmpleadoAttributes, "id"| "estatus"> {}
 
 class Empleado extends Model<EmpleadoAttributes, EmpleadoCreationAttributes>
   implements EmpleadoAttributes{
     public id!: number;
-    public calle!: string;
-    public colonia!: string;
+    public calle!: string | null;
+    public colonia!: string | null;
     public ciudad!: string | null;
     public cp!: string | null;
-    public numExt!: string;
-    public numInt!: string;
+    public numExt!: string | null;
+    public numInt!: string | null;
     public noInterno!: string | null;
-    public idEstado!: number;
+    public estatus!: string;
+    public idEstado!: number | null;
+    public idAdministrador!: number;
+  
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
     
     public readonly usuario?: Usuario;
     public readonly persona?: Persona; // Note this is optional since it's only populated when explicitly requested in code
+    
+    public getPersona!: HasOneGetAssociationMixin<Persona>;
+    public getUsuario!: HasOneGetAssociationMixin<Usuario>;
+    public createUsuario!: HasOneCreateAssociationMixin<Usuario>;
 
     public static associations: {
       persona: Association<Empleado, Persona>;
@@ -77,6 +86,11 @@ class Empleado extends Model<EmpleadoAttributes, EmpleadoCreationAttributes>
       noInterno:{
         type: DataTypes.STRING,
         allowNull: true
+      },
+      estatus:{
+        type: DataTypes.CHAR(1),
+        allowNull: false,
+        defaultValue: '1'
       },
       idEstado:{
         type: DataTypes.INTEGER,

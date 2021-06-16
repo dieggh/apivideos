@@ -10,12 +10,11 @@ interface PersonaAttributes{
     nombre: string;
     primerAp: string;
     segundoAp: string | null;
-    telefono: string | null;
-    estatus: string;
+    telefono: string | null;    
     ip: string;
 }   
 
-interface PersonaCreationAttributes extends Optional<PersonaAttributes, "id" | "estatus"> {}
+interface PersonaCreationAttributes extends Optional<PersonaAttributes, "id"> {}
 
 
 class Persona extends Model<PersonaAttributes, PersonaCreationAttributes>
@@ -24,8 +23,7 @@ class Persona extends Model<PersonaAttributes, PersonaCreationAttributes>
     public nombre!: string;
     public primerAp!: string;
     public segundoAp!: string | null;
-    public telefono!: string | null;
-    public estatus!: string;
+    public telefono!: string | null;    
     public ip!: string;
 
     public getAdministrador!: HasOneGetAssociationMixin<Administrador>; // Note the null assertions!
@@ -64,10 +62,6 @@ class Persona extends Model<PersonaAttributes, PersonaCreationAttributes>
       telefono:{
         type: DataTypes.STRING(10),
         allowNull: true
-      },
-      estatus:{
-          type: DataTypes.CHAR(1),
-          defaultValue: "1"
       },
       ip: {
         type: DataTypes.STRING(54)

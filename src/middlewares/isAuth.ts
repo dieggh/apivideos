@@ -29,7 +29,7 @@ const isAuthAdmin = (req: Request, res: Response, next: NextFunction) => {
             res.status(401).json({
                 message: "Permisos Insuficientes",
                 status: false
-            })
+            });
         }
     } catch (error) {
         console.log(error)
@@ -44,9 +44,16 @@ const isAuthAdmin = (req: Request, res: Response, next: NextFunction) => {
 const isAuthUser = (req: Request, res: Response, next: NextFunction) => {
     try {
         const payload = isAuth(req, res) as UserPayload;
-       
-        req.currentUser = payload;
-        next();
+        
+        if (payload.nivelAcceso < 2) {
+            req.currentUser = payload;
+            next();
+        }else{
+            return res.status(401).json({
+                message: "Permisos Insuficientes",
+                status: false
+            });
+        }
     
     } catch (error) {
         res.status(401).json({
@@ -55,13 +62,36 @@ const isAuthUser = (req: Request, res: Response, next: NextFunction) => {
         })
     }
 }
+
+const isAuthEmployer = (req: Request, res: Response, next: NextFunction) =>{
+    try {
+        const payload = isAuth(req, res) as UserPayload;
+        
+        if(payload.nivelAcceso === 2){
+            req.currentUser = payload;
+            next();
+        }else{
+            res.status(401).json({
+                message: "Permisos Insuficientes",
+                status: false
+            });
+        }
+        
+    
+    } catch (error) {
+        res.status(401).json({
+            message: "Token no Proveído",
+            status: false
+        })
+    }
+}
+
 const isAuth = (req: Request, res: Response,) => {
     try {
-        const token = req.headers.authorization?.toString();
-        console.log(token)
+        const token = req.headers.authorization?.toString();        
         if (token) {
 
-            const payload = jwt.verify(token.replace('bearer ', ''), config.KEY_SECRET) as UserPayload;
+            const payload = jwt.verify(token.replace('Bearer ', ''), config.KEY_SECRET) as UserPayload;
             return payload;
 
         } else {
@@ -74,5 +104,6 @@ const isAuth = (req: Request, res: Response,) => {
 
 export {
     isAuthAdmin,
-    isAuthUser
+    isAuthUser,
+    isAuthEmployer
 };
