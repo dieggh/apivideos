@@ -1,34 +1,38 @@
 import { NextFunction, Request, Response } from "express"
 import { Administrador } from "../models/Administrador";
-import { Empleado } from "../models/Empleado";
+import { Capitulo } from "../models/Capitulo";
+import { CategoriaCapitulo } from "../models/CategoriaCapitulo";
 
-const policyEmpleado = async(req: Request, res: Response, next: NextFunction) =>{
+const policyCapitulo = async(req: Request, res: Response, next: NextFunction) =>{
     try {
         const { id } = req.params;
         const { idKind, nivelAcceso } = req.currentUser!;
-        
-        const emp = await Empleado.findByPk(id, {
-            attributes: ["idAdministrador"],
-            include: {
-                model: Administrador, as: 'administrador',
-                attributes: ["id", "estatus"]
-            }
-        });
-        
-        if(emp){
 
-            if(emp.administrador?.estatus === '0'){
+        const admin = await Administrador.findByPk(idKind, { attributes: ["id", "estatus"]});
+                            
+        if(admin){
+
+            if( admin.estatus !== '1'){
                 return res.status(401).json({
                     status: false,
-                    message: "Acceso Denegado"
-                })
+                    message: "Acceso denegado"
+                });
             }
-            
+
             if(nivelAcceso === 0){
                 return next();
             }
+            
+            const cap = await Capitulo.findByPk(id,{
+                include:{
+                    model: CategoriaCapitulo, as: 'categoria',
+                    where:{
+                        idAdministrador: idKind
+                    }
+                }
+            });
 
-            if(emp.idAdministrador === idKind ){
+            if(cap){
                 next();
             }else{
                 res.status(401).json({
@@ -39,7 +43,7 @@ const policyEmpleado = async(req: Request, res: Response, next: NextFunction) =>
         }else{
             res.status(404).json({
                 status: false,
-                message: "Empleado no encontrado"
+                message: "Administrador no encontrado"
             });
         }                
     } catch (error) {
@@ -50,5 +54,5 @@ const policyEmpleado = async(req: Request, res: Response, next: NextFunction) =>
 }
 
 export {
-    policyEmpleado
+    policyCapitulo
 }

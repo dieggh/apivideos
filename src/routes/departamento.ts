@@ -4,6 +4,7 @@ import { deleteDepartamento, getDepartamento, getDepartamentoById, postDepartame
 import { validateRequest } from '../helpers/validateRequest';
 import { DepartamentoValidation, PersonaValidation } from '../helpers/validations';
 import { isAuthUser, isAuthAdmin } from '../middlewares/isAuth';
+import { policyDepartamento } from '../middlewares/policyDepartamento';
 
 const router = express.Router();
 
@@ -25,9 +26,10 @@ router.get('/api/departamento/:id',
         param('id')
             .notEmpty()
             .isNumeric()
-            .withMessage("El parámetro id es requerido")
+            .withMessage("El parámetro id es requerido y debe ser entero")
     ],
     validateRequest,
+    policyDepartamento,
     getDepartamentoById
 );
 
@@ -41,6 +43,7 @@ router.put('/api/departamento/:id',
             .withMessage("El parámetro id es requerido")
     ],
     validateRequest,
+    policyDepartamento,
     putDepartamento
 );
 
@@ -53,6 +56,7 @@ router.delete('/api/departamento',
             .withMessage("El parámetro id es requerido")
     ],
     validateRequest,
+    policyDepartamento,
     deleteDepartamento
 );
 

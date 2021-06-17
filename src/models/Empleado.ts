@@ -40,7 +40,8 @@ class Empleado extends Model<EmpleadoAttributes, EmpleadoCreationAttributes>
     
     public readonly usuario?: Usuario;
     public readonly persona?: Persona; // Note this is optional since it's only populated when explicitly requested in code
-    
+    public readonly administrador?: Administrador; // Note this is optional since it's only populated when explicitly requested in code
+
     public getPersona!: HasOneGetAssociationMixin<Persona>;
     public getUsuario!: HasOneGetAssociationMixin<Usuario>;
     public createUsuario!: HasOneCreateAssociationMixin<Usuario>;

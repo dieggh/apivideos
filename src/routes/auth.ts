@@ -1,9 +1,8 @@
 import express from 'express';
-import { body } from 'express-validator';
 import { postSignIn, postSignUp, postRefreshToken, postSignUpTitular } from '../controllers/AuthController';
 import { validateRequest } from '../helpers/validateRequest';
 import { PersonaValidation, UsuarioValidation } from '../helpers/validations';
-import { isAuthUser, isAuthAdmin } from '../middlewares/isAuth';
+import { isAuthAdmin } from '../middlewares/isAuth';
 
 const router = express.Router();
 

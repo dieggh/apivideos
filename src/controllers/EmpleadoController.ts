@@ -68,6 +68,7 @@ const postEmpleado = async (req: Request, res: Response) => {
         });
 
     } catch (error) {
+        await t.rollback();
         res.status(500).json({
             status: false
         });
@@ -88,7 +89,17 @@ const getEmpleados = async (req: Request, res: Response) => {
             const admin = await Administrador.findByPk(idKind, { attributes: ["id", "estatus"] });
 
             if (admin && admin.estatus === '1') {
-                const empleados = await admin.getEmpleados();
+                const empleados = await admin.getEmpleados({
+                    include: [
+                        {
+                            model: Persona, as: 'persona',
+                        }, {
+                            model: Usuario, as: 'usuario',
+                            attributes: {
+                                exclude: ["password", "token"]
+                            }
+                        }]
+                });
                 return res.status(200).json({
                     status: true,
                     empleados
@@ -99,7 +110,7 @@ const getEmpleados = async (req: Request, res: Response) => {
                     message: "Administrador no habilitado"
                 });
             }
-          
+
         }
 
     } catch (error) {
@@ -113,48 +124,57 @@ const getEmpleadoById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const { idKind, nivelAcceso } = req.currentUser!;
-        
-        if(nivelAcceso === 0){
-            const empleado = await Empleado.findByPk(id);
+
+        if (nivelAcceso === 0) {
+            const empleado = await Empleado.findByPk(id, {
+                include: [{
+                    model: Persona, as: 'persona',
+                }, {
+                    model: Usuario, as: 'usuario',
+                    attributes: {
+                        exclude: ["password", "token"]
+                    }
+                }]
+            });
             return res.status(401).json({
                 status: true,
-                empleado: empleado                    
+                empleado: empleado
             });
-        }else{
+        } else {
 
-            const admin = await Administrador.findByPk(idKind);       
+            const admin = await Administrador.findByPk(idKind);
 
-            if(admin && admin.estatus === '1'){
+            if (admin && admin.estatus === '1') {
                 const empleado = await admin.getEmpleados({
-                    where:{
+                    where: {
                         id: id
                     }
                 });
-    
-                if(empleado.length > 0){
+
+                if (empleado.length > 0) {
                     return res.status(401).json({
                         status: true,
-                        empleado: empleado[0]                    
+                        empleado: empleado[0]
                     });
-                }else{
+                } else {
                     return res.status(404).json({
                         status: false,
                         message: "Empleado no encontrado"
                     });
                 }
-    
-            }else{
+
+            } else {
                 return res.status(401).json({
                     status: false,
                     message: "Administrador no habilitado"
                 });
             }
         }
-       
+
     } catch (error) {
         console.log(error)
         return res.status(500).json({
-            status: false            
+            status: false
         });
     }
 }
@@ -164,22 +184,23 @@ const putEmpleado = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const { numExt, numInt, calle, ciudad, cp, colonia, noInterno, idEstado,
-        nombre, primerAp, segundoAp, telefono, password, email } = req.body;
+            nombre, primerAp, segundoAp, telefono, password, email } = req.body;
 
-        const empleado = await Empleado.findByPk(id, {transaction: t});
-         console.log(calle)   
-        if(empleado){
+        const empleado = await Empleado.findByPk(id, { transaction: t });
 
-            if(password || email){
+        if (empleado) {
+
+            if (password || email) {
 
                 const user = await empleado.getUsuario({
                     transaction: t
                 });
-                
-                if(password && password.trim().length > 7){
+
+                if (password && password.trim().length > 7) {
                     user.password = await Password.toHash(password);
-                    await user.save({transaction: t});
-                }else if(password){
+                    user.token = null;
+                    await user.save({ transaction: t });
+                } else if (password) {
                     await t.rollback();
                     return res.status(400).json({
                         status: false,
@@ -187,8 +208,8 @@ const putEmpleado = async (req: Request, res: Response) => {
                     });
                 }
 
-                if(email){
-                    if(!(/.+@.+..+/).test(email)){
+                if (email) {
+                    if (!(/.+@.+..+/).test(email)) {
                         await t.rollback();
                         return res.status(400).json({
                             status: false,
@@ -196,22 +217,22 @@ const putEmpleado = async (req: Request, res: Response) => {
                         });
                     }
                     const inUse = await Usuario.findOne({
-                        where:{
+                        where: {
                             email: email
                         }
                     });
 
-                    if(!inUse){                        
+                    if (!inUse) {
                         user.email = email;
-                        await user.save({transaction: t});
-                    }else{
+                        await user.save({ transaction: t });
+                    } else {
                         await t.rollback();
                         return res.status(400).json({
                             status: false,
                             message: "El Correo Electrónico ya está en Uso"
                         });
                     }
-                }                                
+                }
             }
 
             empleado.numExt = numExt;
@@ -222,44 +243,48 @@ const putEmpleado = async (req: Request, res: Response) => {
             empleado.cp = cp;
             empleado.noInterno = noInterno;
             empleado.idEstado = idEstado;
-                        
-            await empleado.save({transaction: t});
+
+            await empleado.save({ transaction: t });
 
             const persona = await empleado.getPersona({
                 transaction: t
             });
 
             persona.nombre = nombre;
-            persona.primerAp  = primerAp;
+            persona.primerAp = primerAp;
             persona.segundoAp = segundoAp;
             persona.telefono = telefono;
-            persona.ip =  req.ip;                                                
+            persona.ip = req.ip;
 
-            await persona.save({transaction: t});
-            
+            await persona.save({ transaction: t });
+
             await t.commit();
 
             res.status(200).json({
                 status: true
             });
         }
-        
+
     } catch (error) {
+        await t.rollback();
         return res.status(500).json({
-            status: false            
+            status: false
         });
     }
 }
 
 const deleteEmpleado = async (req: Request, res: Response) => {
     try {
-        
+
         const { id } = req.params;
-        
+
         const empleado = await Empleado.findByPk(id);
 
-        if(empleado){
+        if (empleado) {
             empleado.estatus = '0';
+            const user = await empleado.getUsuario();
+            user.token = null;
+            await user.save();
             await empleado.save();
         }
 
@@ -268,24 +293,24 @@ const deleteEmpleado = async (req: Request, res: Response) => {
         });
     } catch (error) {
         return res.status(500).json({
-            status: false            
+            status: false
         });
     }
 }
 
 const postAsignarDepartamento = async (req: Request, res: Response) => {
     try {
-        
+
         const { id } = req.params;
         const { idDepartamento } = req.body;
 
         const empleado = await Empleado.findByPk(idDepartamento);
         const departamento = await Departamento.findByPk(id, { attributes: ['id'] });
 
-        if(empleado && departamento){
+        if (empleado && departamento) {
             //verificamos si existen asignaciones activas
             const asignaciones = await Departamento_Empleado.findAll({
-                where:{
+                where: {
                     idEmpleado: id,
                     estatus: '1'
                 }
@@ -306,16 +331,16 @@ const postAsignarDepartamento = async (req: Request, res: Response) => {
             return res.status(200).json({
                 status: true
             });
-        }else{
+        } else {
             return res.status(404).json({
                 status: false,
                 message: "Departamento / Empleado no existe"
             });
         }
-     
+
     } catch (error) {
         return res.status(500).json({
-            status: false            
+            status: false
         });
     }
 }

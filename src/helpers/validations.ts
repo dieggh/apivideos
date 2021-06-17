@@ -35,7 +35,7 @@ class DepartamentoValidation extends RequestValidation {
 class UsuarioValidation extends RequestValidation {
     validation = [
         body("password")
-            .trim()            
+            .trim()
             .isLength({
                 min: 8,
                 max: 16
@@ -64,4 +64,28 @@ class UsuarioValidation extends RequestValidation {
     ]
 }
 
-export { PersonaValidation, DepartamentoValidation, UsuarioValidation };
+class CapituloValidation extends RequestValidation {
+    validation = [
+        body("nombre")
+            .notEmpty()
+            .withMessage("Nombre requerido"),
+        body("tipo")
+            .notEmpty()
+            .withMessage("Tipo del recurso requerido"),
+        body("file.base64")
+            .notEmpty()
+            .withMessage("file.base64 requerido"),
+        body("file.fileName")
+            .notEmpty()
+            .withMessage("file.fileName requerido"),
+        body("file.ext")
+            .notEmpty()
+            .withMessage("file.ext requerido"),
+        body('idCategoria')
+            .notEmpty()
+            .isNumeric()
+            .withMessage('idCategoria requerido')
+    ]
+}
+
+export { PersonaValidation, DepartamentoValidation, UsuarioValidation, CapituloValidation };

@@ -9,7 +9,7 @@ interface UsuarioAttributes{
     email: string;
     nivelAcceso: number;
     estatus: string;   
-    token: string
+    token: string | null;
 }   
 
 interface UsuarioCreationAttributes extends Optional<UsuarioAttributes, "id" | "estatus"> {}
@@ -22,7 +22,7 @@ class Usuario extends Model<UsuarioAttributes, UsuarioCreationAttributes>
     public email!: string;
     public nivelAcceso!: number;    
     public estatus!: string;
-    public token!: string;
+    public token!: string | null;
 
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
