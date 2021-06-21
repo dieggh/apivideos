@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { Administrador } from "../models/Administrador";
-import { CategoriaCapitulo } from "../models/CategoriaCapitulo";
+import { Categoria } from "../models/Categoria";
 
 const postCategoria = async (req: Request, res: Response) =>{
     try {        
@@ -42,7 +42,7 @@ const putCategoria = async (req: Request, res: Response) =>{
         const { nombre, descripcion } = req.body;
         const { id } = req.params;
 
-        const categoria = await CategoriaCapitulo.findByPk(id);
+        const categoria = await Categoria.findByPk(id);
 
         if(categoria){
             
@@ -74,7 +74,7 @@ const getCategorias = async (req: Request, res: Response) =>{
         const { idKind, nivelAcceso } = req.currentUser!;
 
         if(nivelAcceso === 0){
-            const categorias = await CategoriaCapitulo.findAll();
+            const categorias = await Categoria.findAll();
 
             res.status(200).json({
                 status: true,
@@ -111,7 +111,7 @@ const getCategoriaById = async (req: Request, res: Response) =>{
     try {                
         const { id } = req.params;
 
-        const categoria = await CategoriaCapitulo.findByPk(id);
+        const categoria = await Categoria.findByPk(id);
 
         if(categoria){          
 
@@ -138,7 +138,7 @@ const deleteCategoria = async (req: Request, res: Response) =>{
     try {        
         const { id } = req.params;
 
-        const categoria = await CategoriaCapitulo.findByPk(id);
+        const categoria = await Categoria.findByPk(id);
 
         if(categoria){
             categoria.estatus = '0';

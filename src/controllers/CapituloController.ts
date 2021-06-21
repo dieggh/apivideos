@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 import { Capitulo } from "../models/Capitulo";
-import { CategoriaCapitulo } from "../models/CategoriaCapitulo";
+import { Categoria } from "../models/Categoria";
 import { saveFiles } from "../utils/base64";
 
 const postCapitulo = async (req: Request, res: Response) => {
     try {
         const { nombre, descripcion, tipo, duracion, idCategoria, file } = req.body;
 
-        const categoria = await CategoriaCapitulo.findByPk(idCategoria, {
+        const categoria = await Categoria.findByPk(idCategoria, {
             attributes: ["id"]
         }
         );
@@ -23,11 +23,12 @@ const postCapitulo = async (req: Request, res: Response) => {
                 ip: req.ip
             });
 
-            const directory = `dist/public/videos/${cap.id}`;
+            const directory = `${process.env.FILES_PATH!}/videos/${cap.id}`;
             const path = await saveFiles(file.base64, file.fileName, file.ext, directory);
-
-            cap.path = path;
-            await cap.save();
+            if (path) {
+                cap.path = path;
+                await cap.save();
+            }
 
             res.status(200).json({
                 status: true
@@ -52,16 +53,41 @@ const postCapitulo = async (req: Request, res: Response) => {
 const putCapitulo = async (req: Request, res: Response) => {
     try {
 
-        const { nombre, descripcion } = req.body;
+        const { nombre, descripcion, tipo, duracion, idCategoria, file } = req.body;
         const { id } = req.params;
 
-        const categoria = await CategoriaCapitulo.findByPk(id);
 
-        if (categoria) {
+        const cap = await Capitulo.findByPk(id);
 
-            categoria.nombre = nombre;
-            categoria.descripcion = descripcion;
-            await categoria.save();
+        if (cap) {
+
+            if (idCategoria) {
+                const categoria = await Categoria.findByPk(idCategoria);
+                if (categoria) {
+                    await cap.setCategoria(categoria);
+                    //console.log(cap2)
+                } else {
+                    return res.status(404).json({
+                        status: false,
+                        message: "Categoria no Existe"
+                    });
+                }
+            }
+
+            cap.nombre = nombre;
+            cap.descripcion = descripcion;
+            cap.tipo = tipo;
+            cap.duracion = duracion;
+            
+            if (file) {
+                const directory =  `${process.env.FILES_PATH!}/videos/${cap.id}`;
+                const path = await saveFiles(file.base64, file.fileName, file.ext, directory, cap.path);
+                if (path) {
+                    cap.path = path;
+                }
+            }
+
+            await cap.save();
 
             res.status(200).json({
                 status: true
@@ -70,12 +96,13 @@ const putCapitulo = async (req: Request, res: Response) => {
         } else {
             res.status(404).json({
                 status: false,
-                message: "Categoria no existe"
+                message: "Capitulo no existe"
             });
         }
 
-
     } catch (error) {
+        console.log(error);
+
         res.status(500).json({
             status: false
         });
@@ -89,7 +116,10 @@ const getCapitulos = async (req: Request, res: Response) => {
         if (nivelAcceso === 0) {
             const capitulos = await Capitulo.findAll({
                 include: {
-                    model: CategoriaCapitulo, as: 'categoria'
+                    model: Categoria, as: 'categoria',
+                    attributes: {
+                        exclude: ["createdAt", "updatedAt", "ip"]
+                    }
                 }
             });
 
@@ -97,23 +127,21 @@ const getCapitulos = async (req: Request, res: Response) => {
                 status: true,
                 capitulos
             });
-        }
-
-        const capitulos = await Capitulo.findAll({
-            include: {
-                model: CategoriaCapitulo, as: 'categoria',
-                where: {
-                    idAdministrador: idKind
+        }else{
+            const capitulos = await Capitulo.findAll({
+                include: {
+                    model: Categoria, as: 'categoria',
+                    where: {
+                        idAdministrador: idKind
+                    }
                 }
-            }
-        });
-
-        res.status(200).json({
-            status: true,
-            capitulos
-        });
-
-
+            });
+    
+            res.status(200).json({
+                status: true,
+                capitulos
+            });   
+        }
 
     } catch (error) {
         res.status(500).json({
@@ -126,7 +154,14 @@ const getCapitulosById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
 
-        const capitulo = await Capitulo.findByPk(id);
+        const capitulo = await Capitulo.findByPk(id,{
+            include : {
+                model: Categoria, as: 'categoria',
+                attributes: {
+                    exclude: ["createdAt", "updatedAt", "ip"]
+                }
+            }
+        });
 
         if (capitulo) {
 
@@ -149,6 +184,7 @@ const getCapitulosById = async (req: Request, res: Response) => {
         });
     }
 }
+
 const deleteCapitulo = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;

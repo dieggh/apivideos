@@ -67,7 +67,7 @@ router.delete('/api/departamento',
     deleteEmpleado
 );
 
-router.post('/api/departamento/asignarDepartamento',
+router.post('/api/departamento/asignarDepartamento/:id',
     isAuthUser,
     [
         param('id')
@@ -78,6 +78,6 @@ router.post('/api/departamento/asignarDepartamento',
     validateRequest,
     policyEmpleado,
     postAsignarDepartamento
-)
+);
 
 export { router as empleadoRoute }

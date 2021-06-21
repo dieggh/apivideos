@@ -72,42 +72,5 @@ class Persona extends Model<PersonaAttributes, PersonaCreationAttributes>
       sequelize, // passing the `sequelize` instance is required
     }
   );
-// We need to declare an interface for our model that is basically what our class would be
-/*interface PersonaInstance
-  extends Model<PersonaAttributes, PersonaCreationAttributes>,
-    PersonaAttributes {}
-
-const PersonaModel = sequelize.define<PersonaInstance>("Persona", {
-    id: {
-      primaryKey: true,
-      type: DataTypes.INTEGER.UNSIGNED,
-      autoIncrement: true
-    },
-    nombre: {
-      type: DataTypes.STRING,
-    },
-    primerAp: {
-        type: DataTypes.STRING
-    },
-    segundoAp:{
-        type: DataTypes.STRING,
-        allowNull: true
-    },
-    telefono:{
-      type: DataTypes.STRING(10),
-    },
-    estatus:{
-        type: DataTypes.CHAR(1),
-        defaultValue: "1"
-    },
-    ip: {
-      type: DataTypes.STRING(54)
-    }
-        
-  },{    
-    timestamps: true,
-    freezeTableName: true
-    
-  });*/
-
+  
   export { Persona };

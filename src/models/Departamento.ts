@@ -21,14 +21,14 @@ class Departamento extends Model<DepartamentoAttributes, DepartamentoCreationAtt
     public estatus!: string;
     public ip!: string;
 
-    public getAdministrador!: HasOneGetAssociationMixin<Administrador>; // Note the null assertions!        
-    public createDepartamento!: HasOneCreateAssociationMixin<Administrador>;
+    public getAdministrador!: HasOneGetAssociationMixin<Administrador>; // Note the null assertions!          
     
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
 
     public readonly administrador?: Administrador; // Note this is optional since it's only populated when explicitly requested in code
-    public readonly empleados?: Empleado; // Note this is optional since it's only populated when explicitly requested in code
+    public readonly empleado?: Empleado; // Note this is optional since it's only populated when explicitly requested in code
+    public readonly Empleados?: Empleado[]; // Note this is optional since it's only populated when explicitly requested in code
 
   }
 

@@ -2,8 +2,13 @@
 
 import fs, { stat } from 'fs';
 
-const saveFiles = async (base64File: string, fileName: string, ext: string, directory: string): Promise<string>  => {
+const saveFiles = async (base64File: string, fileName: string, ext: string, directory: string, previousFile: string | null = null): Promise<string>  => {
 
+    if(previousFile !== null){
+        fs.unlink(`${process.env.FILES_PATH!}/${previousFile}`, (error) =>{
+            console.log(error)
+        })
+    }
   
     return new Promise<string>((resolve, reject) =>{
         

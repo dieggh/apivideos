@@ -57,7 +57,7 @@ const isAuthUser = (req: Request, res: Response, next: NextFunction) => {
     
     } catch (error) {
         res.status(401).json({
-            message: "Token no Proveído",
+            message: error,
             status: false
         })
     }
@@ -98,6 +98,7 @@ const isAuth = (req: Request, res: Response,) => {
             throw "Token no Proveído";
         }
     } catch (error) {
+        console.log(error)
         throw error;
     }
 }

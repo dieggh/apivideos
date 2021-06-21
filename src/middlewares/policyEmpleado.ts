@@ -43,6 +43,7 @@ const policyEmpleado = async(req: Request, res: Response, next: NextFunction) =>
             });
         }                
     } catch (error) {
+        console.log(error)
         res.status(404).json({
             status: false
         });

@@ -1,27 +1,28 @@
 import { Model ,Optional, DataTypes, BelongsToManyGetAssociationsMixin , BelongsToManyCreateAssociationMixin } from 'sequelize';
 import { sequelize } from './../utils/database';
+import { Categoria } from './Categoria';
 import { Departamento } from './Departamento';
 import { Empleado } from './Empleado';
 
-interface Departamento_EmpleadoAttributes{    
+interface Departamento_CategoriaAttributes{    
     id: number;
     estatus: string;
     idDepartamento: number;
-    idEmpleado: number;
+    idCategoria: number;
     ip: string;
 }   
 
-interface Departamento_EmpleadoCreationAttributes extends Optional<Departamento_EmpleadoAttributes, "id" | "estatus"> {}
+interface Departamento_CategoriaCreationAttributes extends Optional<Departamento_CategoriaAttributes, "id" | "estatus"> {}
 
-class Departamento_Empleado extends Model<Departamento_EmpleadoAttributes, Departamento_EmpleadoCreationAttributes>
-  implements Departamento_EmpleadoAttributes{
+class Departamento_Categoria extends Model<Departamento_CategoriaAttributes, Departamento_CategoriaCreationAttributes>
+  implements Departamento_CategoriaAttributes{
     public id!: number;
     public estatus!: string;
     public ip!: string;
     public idDepartamento!: number;
-    public idEmpleado!: number;
+    public idCategoria!: number;
 
-    public getEmpleados!: BelongsToManyGetAssociationsMixin<Empleado>; // Note the null assertions!        
+    public getCategorias!: BelongsToManyGetAssociationsMixin<Categoria>; // Note the null assertions!        
     public getDepartamentos!: BelongsToManyGetAssociationsMixin<Departamento>;     
     
     public readonly createdAt!: Date;
@@ -32,7 +33,7 @@ class Departamento_Empleado extends Model<Departamento_EmpleadoAttributes, Depar
 
   }
 
-  Departamento_Empleado.init(
+  Departamento_Categoria.init(
     {
       id:{
         type: DataTypes.INTEGER.UNSIGNED,
@@ -43,7 +44,7 @@ class Departamento_Empleado extends Model<Departamento_EmpleadoAttributes, Depar
         type: DataTypes.INTEGER.UNSIGNED,
         allowNull: false
       },
-      idEmpleado:{
+      idCategoria:{
         type: DataTypes.INTEGER.UNSIGNED,
         allowNull: false
       },
@@ -57,12 +58,12 @@ class Departamento_Empleado extends Model<Departamento_EmpleadoAttributes, Depar
         allowNull: false,
       },
     },{
-      tableName: "Departamento_Empleado",
+      tableName: "Departamento_Categoria",
       sequelize
     }
   );
 
-  Empleado.belongsToMany(Departamento, { through: 'Departamento_Empleado', foreignKey: 'idDepartamento', as: 'Departamento' });
-  Departamento.belongsToMany(Empleado, { through: 'Departamento_Empleado', foreignKey: 'idEmpleado', as: "Empleados" });
+  Categoria.belongsToMany(Departamento, { through: 'Departamento_Categoria', foreignKey: 'idDepartamento' });
+  Departamento.belongsToMany(Categoria, { through: 'Departamento_Categoria', foreignKey: 'idCategoria'  });
 
-  export { Departamento_Empleado };
+  export { Departamento_Categoria };

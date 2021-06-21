@@ -1,8 +1,12 @@
 import { Request, Response } from "express";
 import { Administrador } from "../models/Administrador";
+import { Capitulo } from "../models/Capitulo";
+import { Categoria } from "../models/Categoria";
 import { Departamento } from "../models/Departamento";
+import { Departamento_Categoria } from "../models/Departamento_Categoria";
 import { Departamento_Empleado } from "../models/Departamento_Empleado";
 import { Empleado } from "../models/Empleado";
+import { Empleado_Capitulo } from "../models/Empleado_Capitulo";
 import { Persona } from "../models/Persona";
 import { Usuario } from "../models/Usuario";
 import { sequelize } from "../utils/database";
@@ -45,7 +49,7 @@ const postEmpleado = async (req: Request, res: Response) => {
         await empleado.createUsuario({
             email: email,
             password: hashedPass,
-            nivelAcceso: 0,
+            nivelAcceso: 2,
         }, {
             transaction: t
         });
@@ -183,10 +187,11 @@ const putEmpleado = async (req: Request, res: Response) => {
     const t = await sequelize.transaction();
     try {
         const { id } = req.params;
+        const { nivelAcceso, idKind } = req.currentUser!;
         const { numExt, numInt, calle, ciudad, cp, colonia, noInterno, idEstado,
             nombre, primerAp, segundoAp, telefono, password, email } = req.body;
 
-        const empleado = await Empleado.findByPk(id, { transaction: t });
+        const empleado = await Empleado.findByPk(nivelAcceso === 2 ? idKind : id, { transaction: t });
 
         if (empleado) {
 
@@ -241,7 +246,10 @@ const putEmpleado = async (req: Request, res: Response) => {
             empleado.ciudad = ciudad;
             empleado.colonia = colonia;
             empleado.cp = cp;
-            empleado.noInterno = noInterno;
+            if (nivelAcceso !== 2) {
+                empleado.noInterno = noInterno;
+            }
+
             empleado.idEstado = idEstado;
 
             await empleado.save({ transaction: t });
@@ -339,8 +347,172 @@ const postAsignarDepartamento = async (req: Request, res: Response) => {
         }
 
     } catch (error) {
+        console.log(error)
         return res.status(500).json({
             status: false
+        });
+    }
+}
+
+const getPerfil = async (req: Request, res: Response) => {
+    try {
+        const { idKind } = req.currentUser!;
+
+        const empleado = await Empleado.findByPk(idKind, {
+            include: [
+                {
+                    model: Persona, as: 'persona',
+                },
+                {
+                    model: Usuario, as: 'usuario',
+                    attributes: {
+                        exclude: ["password"]
+                    }
+                },
+                {
+                    model: Departamento,
+                    through: {
+                        attributes: []
+                    }
+                }
+            ]
+        })
+
+        return res.status(200).json({
+            status: true,
+            empleado: empleado
+        });
+    } catch (error) {
+        return res.status(500).json({
+            status: false
+        });
+    }
+}
+
+const getCapitulos = async (req: Request, res: Response) => {
+    try {
+        const { idKind } = req.currentUser!;
+
+        const data = await Empleado.findByPk(idKind, {
+            attributes: ["id"],
+            include: {
+                model: Departamento, as: 'Departamento',
+                through: {
+                    attributes: []
+                },
+                include: [
+                    {
+                        model: Categoria,
+                        through: {
+                            attributes: []
+                        },
+                        include: [
+                            {
+                                model: Capitulo, as: 'capitulos'
+                            }
+                        ]
+                    }
+                ]
+            }
+        });
+
+        return res.status(200).json({
+            status: true,
+            capitulos: data
+        });
+
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            status: false
+        });
+    }
+}
+
+const postIniciarCapitulo = async (req: Request, res: Response) => {
+
+    try {
+        const { idKind } = req.currentUser!;
+        const { idCapitulo } = req.body;                
+
+        await Empleado_Capitulo.create({
+            idCapitulo: idCapitulo,
+            idEmpleado: idKind,
+            ip: req.ip,
+            fechaVista: new Date(Date.now()),
+            fechaConclusion: null
+        });
+
+        res.status(200).json({
+            status: true
+        });
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            status: false
+        });
+    }
+
+}
+
+const putFinalizarCapitulo = async (req: Request, res: Response) => {
+    try {
+        const { idKind } = req.currentUser!;
+        const { idCapitulo } = req.body;
+
+        const empCap = await Empleado_Capitulo.findOne({
+            where: {
+                idCapitulo: idCapitulo,
+                idEmpleado: idKind
+            }
+        });
+
+        if(empCap){
+            
+            empCap.fechaConclusion = new Date(Date.now());
+            empCap.estatus = '2';
+            empCap.save();
+            
+            res.status(200).json({
+                status: true
+            });
+        }else{
+            res.status(404).json({
+                status: false,
+                message: "No se inició la vista del capítulo"
+            });
+        }
+        
+    } catch (error) {
+        res.status(500).json({
+            status: false
+        });
+
+    }
+}
+
+const getCapituloById = async (req: Request, res: Response) =>{
+    try {
+        
+        const { id } = req.params;
+
+        const cap = await Capitulo.findByPk(id);
+
+        cap!.path =  `${process.env.SERVE_FILES!}/files/${id}/${cap!.path}`;
+
+        /*enviar el archivo directamente res.status(200).sendFile( 'videos/1/cronometro4xd.mp4', {
+            root: 'dist/public'
+        });*/
+
+        return res.status(200).json({
+            status: true,
+            url: cap!.path
+        })
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            status: false            
         });
     }
 }
@@ -352,5 +524,10 @@ export {
     getEmpleadoById,
     deleteEmpleado,
     putEmpleado,
-    postAsignarDepartamento
+    postAsignarDepartamento,
+    getPerfil,
+    getCapitulos,
+    postIniciarCapitulo,
+    putFinalizarCapitulo,
+    getCapituloById
 }

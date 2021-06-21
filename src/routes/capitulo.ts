@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { param } from 'express-validator';
+import { body, param } from 'express-validator';
 import { deleteCapitulo, getCapitulos, getCapitulosById, postCapitulo, putCapitulo } from '../controllers/CapituloController';
 import { validateRequest } from '../helpers/validateRequest';
 import { CapituloValidation } from '../helpers/validations';
@@ -16,9 +16,14 @@ router.post('/api/capitulo',
 );
 
 router.put('/api/capitulo/:id',
-    isAuthUser,
-    new CapituloValidation().validation,
+    isAuthUser,    
     [
+        body("nombre")
+            .notEmpty()
+            .withMessage("Nombre requerido"),
+        body("tipo")
+            .notEmpty()
+            .withMessage("Tipo del recurso requerido"),
         param('id')
             .notEmpty()
             .isNumeric()

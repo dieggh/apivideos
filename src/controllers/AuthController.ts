@@ -36,10 +36,14 @@ const postSignIn = async (req: Request, res: Response) => {
 
         const { password, email } = req.body;
 
-        const empleado = await Empleado.findOne({
+        let idkind = null;
+        let user: Usuario;
+
+      
+        const admin = await Administrador.findOne({
             attributes: ["id"],
             where:{
-                estatus : '1'
+                estatus: '1'
             },
             include:
             {
@@ -51,39 +55,16 @@ const postSignIn = async (req: Request, res: Response) => {
             }
         });
 
-
-        let idkind = null;
-        let user: Usuario;
-
-        if (empleado !== null) {
-            idkind = empleado.id;
-            user = empleado.usuario!;
+        if (admin !== null) {
+            idkind = admin.id;
+            user = admin.usuario!;
         } else {
-            const admin = await Administrador.findOne({
-                attributes: ["id"],
-                where:{
-                    estatus: '1'
-                },
-                include:
-                {
-                    model: Usuario, as: 'usuario',
-                    attributes: ["email", "password", "nivelAcceso", "id"],
-                    where: {
-                        'email': email
-                    },
-                }
+            return res.status(401).json({
+                status: false,
+                message: "Usuario o contraseña incorrecta",
             });
-
-            if (admin !== null) {
-                idkind = admin.id;
-                user = admin.usuario!;
-            } else {
-                return res.status(401).json({
-                    status: false,
-                    message: "Usuario o contraseña incorrecta",
-                });
-            }
         }
+        
 
         if (user !== null) {
 
@@ -95,12 +76,12 @@ const postSignIn = async (req: Request, res: Response) => {
                 });
             }
 
-            const typeUser = user.nivelAcceso === 0 ? "superAdmin" : user.nivelAcceso === 1 ? "admin" : "empleado";
+            const typeUser = user.nivelAcceso === 0 ? "superAdmin" :  "admin" ;
 
-            const token = jwt.sign({ email: user.email, id: user.id, nivelAcceso: user.nivelAcceso, typeUser, idKind: idkind }, config.KEY_SECRET, { expiresIn: '12h' });
+            const token = jwt.sign({ email: user.email, id: user.id, nivelAcceso: user.nivelAcceso, typeUser, idKind: idkind }, config.KEY_SECRET, { expiresIn: '8h' });
 
 
-            const refreshToken = jwt.sign({ id: user.id, nivelAcceso: user.nivelAcceso }, config.KEY_SECRET, { expiresIn: '30 days' });
+            const refreshToken = jwt.sign({ id: user.id, nivelAcceso: user.nivelAcceso }, config.KEY_SECRET, { expiresIn: '15 days' });
 
             user.token = refreshToken;
             await user.save();
@@ -121,6 +102,74 @@ const postSignIn = async (req: Request, res: Response) => {
             });
         }
 
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            status: false
+        });
+    }
+}
+
+const postSignInMobile = async (req: Request, res: Response) => {
+    try {
+
+        const { password, email } = req.body;
+
+        let idkind = null;
+        let user: Usuario;
+
+      
+        const emp = await Empleado.findOne({
+            attributes: ["id"],
+            where:{
+                estatus: '1'
+            },
+            include:
+            {
+                model: Usuario, as: 'usuario',
+                attributes: ["email", "password", "nivelAcceso", "id"],
+                where: {
+                    'email': email
+                },
+            }
+        });
+
+        if (emp === null) {
+            return res.status(401).json({
+                status: false,
+                message: "Usuario o contraseña incorrecta",
+            });
+        }else{
+            user = emp.usuario!;
+            idkind = emp.id;
+        }
+        
+            if (!await Password.compare(user.password, password)) {
+                return res.status(401).json({
+                    status: false,
+                    message: "Usuario o contraseña incorrecta",
+                    user: null
+                });
+            }
+
+            const typeUser = "empleado";
+
+            const token = jwt.sign({ email: user.email, id: user.id, nivelAcceso: user.nivelAcceso, typeUser, idKind: idkind }, config.KEY_SECRET, { expiresIn: '12h' });
+
+
+            const refreshToken = jwt.sign({ id: user.id, nivelAcceso: user.nivelAcceso }, config.KEY_SECRET, { expiresIn: '30 days' });
+
+            user.token = refreshToken;
+            await user.save();
+
+            return res.status(200).json({
+                status: true,
+                message: "Autenticado Correctamente",
+                user: { email: user.email, tipo: typeUser },
+                token: token,
+                refreshToken: refreshToken
+            });
 
     } catch (error) {
         console.log(error)
@@ -303,5 +352,6 @@ export {
     postSignIn,
     postSignUp,
     postRefreshToken,
-    postSignUpTitular
+    postSignUpTitular,
+    postSignInMobile
 };

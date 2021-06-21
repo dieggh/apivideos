@@ -1,10 +1,11 @@
-import { Model, Optional, DataTypes, HasManyGetAssociationsMixin, HasManyCreateAssociationMixin, HasOneGetAssociationMixin } from 'sequelize';
+import { Model, Optional, DataTypes, HasManyCreateAssociationMixin, HasOneGetAssociationMixin } from 'sequelize';
 import { sequelize } from '../utils/database';
 import { Administrador } from './Administrador';
 import { Capitulo } from './Capitulo';
+import { Departamento } from './Departamento';
 import { Persona } from './Persona';
 
-interface CategoriaCapituloAttributes {
+interface CategoriaAttributes {
   id: number;
   nombre: string;
   estatus: string;
@@ -12,10 +13,10 @@ interface CategoriaCapituloAttributes {
   ip: string;
 }
 
-interface CategoriaCapituloCreationAttributes extends Optional<CategoriaCapituloAttributes, "id" | "estatus"> { }
+interface CategoriaCreationAttributes extends Optional<CategoriaAttributes, "id" | "estatus"> { }
 
-class CategoriaCapitulo extends Model<CategoriaCapituloAttributes, CategoriaCapituloCreationAttributes>
-  implements CategoriaCapituloAttributes {
+class Categoria extends Model<CategoriaAttributes, CategoriaCreationAttributes>
+  implements CategoriaAttributes {
   public id!: number;
   public nombre!: string;
   public estatus!: string;
@@ -23,7 +24,7 @@ class CategoriaCapitulo extends Model<CategoriaCapituloAttributes, CategoriaCapi
   public ip!: string;
 
   //public getCapitulos!: HasManyGetAssociationsMixin<Administrador>; // Note the null assertions!
-  public createCapitulo!: HasManyCreateAssociationMixin<Capitulo>;
+  public createCapitulo!: HasManyCreateAssociationMixin<Capitulo>;  
   public getAdministrador!: HasOneGetAssociationMixin<Administrador>;
 
   public readonly createdAt!: Date;
@@ -31,10 +32,11 @@ class CategoriaCapitulo extends Model<CategoriaCapituloAttributes, CategoriaCapi
 
   public readonly capitulos?: Persona; // Note this is optional since it's only populated when explicitly requested in code
   public readonly administrador?: Administrador; // Note this is optional since it's only populated when explicitly requested in code
+  public readonly Departamentos?: Departamento[]; // Note this is optional since it's only populated when explicitly requested in code
 }
 
 
-CategoriaCapitulo.init(
+Categoria.init(
   {
     id:{
         type: DataTypes.INTEGER.UNSIGNED,
@@ -57,19 +59,19 @@ CategoriaCapitulo.init(
   }
   ,
   {
-    tableName: "CategoriaCapitulo",
+    tableName: "Categoria",
     sequelize, // passing the `sequelize` instance is required
   }
 );
 
 
-Capitulo.belongsTo(CategoriaCapitulo, {
-  foreignKey: 'idCategoriaCapitulo',
+Capitulo.belongsTo(Categoria, {
+  foreignKey: 'idCategoria',
   as: 'categoria'
 });
-CategoriaCapitulo.hasMany(Capitulo, {
-  foreignKey: 'idCategoriaCapitulo',
+Categoria.hasMany(Capitulo, {
+  foreignKey: 'idCategoria',
   as:'capitulos'
 });
 
-export { CategoriaCapitulo };
+export { Categoria };

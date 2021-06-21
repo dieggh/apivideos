@@ -1,7 +1,9 @@
 import { NextFunction, Request, Response } from "express"
 import { Administrador } from "../models/Administrador";
 import { Capitulo } from "../models/Capitulo";
-import { CategoriaCapitulo } from "../models/CategoriaCapitulo";
+import { Categoria } from "../models/Categoria";
+import { Departamento } from "../models/Departamento";
+import { Empleado } from "../models/Empleado";
 
 const policyCapitulo = async(req: Request, res: Response, next: NextFunction) =>{
     try {
@@ -25,7 +27,7 @@ const policyCapitulo = async(req: Request, res: Response, next: NextFunction) =>
             
             const cap = await Capitulo.findByPk(id,{
                 include:{
-                    model: CategoriaCapitulo, as: 'categoria',
+                    model: Categoria, as: 'categoria',
                     where:{
                         idAdministrador: idKind
                     }
@@ -47,12 +49,71 @@ const policyCapitulo = async(req: Request, res: Response, next: NextFunction) =>
             });
         }                
     } catch (error) {
-        res.status(404).json({
+        res.status(500).json({
+            status: false
+        });
+    }
+}
+
+const policyEmpleadoCapitulo = async(req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { idKind } = req.currentUser!;
+        const { idCapitulo } = req.body;
+        const { id } = req.params;
+        console.log(id);
+        const hasRight = await Capitulo.findOne({
+            where:{
+                id : idCapitulo ? idCapitulo : id
+            },
+            include:[
+                {
+                    model: Categoria, as: 'categoria',
+                    include: [
+                        {
+                            model: Departamento,
+                            include:[
+                                {
+                                    model: Empleado, as: 'Empleados', 
+                                    where:{
+                                        id: idKind
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        });
+
+        if(hasRight){
+            if(hasRight.categoria?.Departamentos){
+                if(hasRight.categoria?.Departamentos.length > 0){
+                    if(hasRight.categoria.Departamentos[0].Empleados!.length > 0){
+                        return next();
+                    }
+                }                
+            }
+            
+            return res.status(401).json({
+                status: false,
+                message: "Acceso denegado"
+            });
+        }else{
+            res.status(401).json({
+                status: false,
+                message: "Acceso denegado"
+            });
+        }
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
             status: false
         });
     }
 }
 
 export {
-    policyCapitulo
+    policyCapitulo,
+    policyEmpleadoCapitulo
 }

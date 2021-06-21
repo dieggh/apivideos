@@ -1,6 +1,6 @@
-import { Model ,Optional, DataTypes } from 'sequelize';
+import { Model ,Optional, DataTypes, BelongsToSetAssociationMixin } from 'sequelize';
 import { sequelize } from '../utils/database';
-import { CategoriaCapitulo } from './CategoriaCapitulo';
+import { Categoria } from './Categoria';
 
 interface CapituloAttributes{    
     id: number;
@@ -32,11 +32,11 @@ class Capitulo extends Model<CapituloAttributes, CapituloCreationAttributes>
     //public hasProject!: HasManyHasAssociationMixin<Project, number>;
     //public countProjects!: HasManyCountAssociationsMixin;
     //public createProject!: HasManyCreateAssociationMixin<Project>;
-
+    public setCategoria!: BelongsToSetAssociationMixin<Categoria, Categoria["id"]>;
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
 
-    //public readonly empleado?: Persona; // Note this is optional since it's only populated when explicitly requested in code
+    public readonly categoria?: Categoria; // Note this is optional since it's only populated when explicitly requested in code
     //public readonly administrador?: Persona; // Note this is optional since it's only populated when explicitly requested in code
   }
 
@@ -78,7 +78,5 @@ class Capitulo extends Model<CapituloAttributes, CapituloCreationAttributes>
       sequelize
     }
   )
-
-  
 
   export { Capitulo };
