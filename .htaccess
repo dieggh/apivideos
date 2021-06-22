@@ -6,6 +6,14 @@ PassengerAppType node
 PassengerStartupFile dist/app.js
 PassengerAppLogFile "/home/axiomahosting/api-videos.log"
 # DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/axiomahosting/public_html/api-videos"
+PassengerBaseURI "/api-videos"
+PassengerNodejs "/home/axiomahosting/nodevenv/public_html/api-videos/10/bin/node"
+PassengerAppType node
+PassengerStartupFile dist/app.js
+PassengerAppLogFile "/home/axiomahosting/api-videos.log"
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
 # DO NOT REMOVE OR MODIFY. CLOUDLINUX ENV VARS CONFIGURATION BEGIN
 <IfModule Litespeed>
 </IfModule>
