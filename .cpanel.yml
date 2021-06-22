@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/axiomahosting/public_html/api-videos
+    - /bin/cp -R * $DEPLOYPATH
