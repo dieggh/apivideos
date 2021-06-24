@@ -15,7 +15,7 @@ const policyCapitulo = async(req: Request, res: Response, next: NextFunction) =>
         if(admin){
 
             if( admin.estatus !== '1'){
-                return res.status(401).json({
+                return res.status(403).json({
                     status: false,
                     message: "Acceso denegado"
                 });
@@ -37,7 +37,7 @@ const policyCapitulo = async(req: Request, res: Response, next: NextFunction) =>
             if(cap){
                 next();
             }else{
-                res.status(401).json({
+                res.status(403).json({
                     status: false,
                     message: "Acceso no Autorizado"
                 });
@@ -57,26 +57,40 @@ const policyCapitulo = async(req: Request, res: Response, next: NextFunction) =>
 
 const policyEmpleadoCapitulo = async(req: Request, res: Response, next: NextFunction) => {
     try {
-        const { idKind } = req.currentUser!;
+        const { idKind, nivelAcceso } = req.currentUser!;
         const { idCapitulo } = req.body;
         const { id } = req.params;
-        console.log(id);
+        console.log(req.path)
+        /*if(nivelAcceso === 0 && req.path.includes('videos')){
+            return next();
+        }*/
+
         const hasRight = await Capitulo.findOne({
+            attributes: ["id"],
             where:{
                 id : idCapitulo ? idCapitulo : id
             },
             include:[
                 {
                     model: Categoria, as: 'categoria',
+                    attributes: ["id"],              
                     include: [
                         {
                             model: Departamento,
+                            attributes: ["id"],
+                            through: {
+                                attributes: ["idDepartamento", "idCategoria"]
+                            },
                             include:[
                                 {
                                     model: Empleado, as: 'Empleados', 
+                                    through: {
+                                        attributes: ["idDepartamento", "idEmpleado"]
+                                    },
                                     where:{
-                                        id: idKind
-                                    }
+                                        id: 2
+                                    },
+                                    attributes: ["id"]
                                 }
                             ]
                         }
@@ -94,12 +108,12 @@ const policyEmpleadoCapitulo = async(req: Request, res: Response, next: NextFunc
                 }                
             }
             
-            return res.status(401).json({
+            return res.status(403).json({
                 status: false,
                 message: "Acceso denegado"
             });
         }else{
-            res.status(401).json({
+            res.status(403).json({
                 status: false,
                 message: "Acceso denegado"
             });

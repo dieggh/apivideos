@@ -11,7 +11,7 @@ const policyCategoria = async(req: Request, res: Response, next: NextFunction) =
         if(admin){
 
             if( admin.estatus !== '1'){
-                return res.status(401).json({
+                return res.status(403).json({
                     status: false,
                     message: "Acceso denegado"
                 });
@@ -29,7 +29,7 @@ const policyCategoria = async(req: Request, res: Response, next: NextFunction) =
             if(categoria.length > 0 ){
                 next();
             }else{
-                res.status(401).json({
+                res.status(403).json({
                     status: false,
                     message: "Acceso no Autorizado"
                 });

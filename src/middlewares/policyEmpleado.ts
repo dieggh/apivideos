@@ -18,7 +18,7 @@ const policyEmpleado = async(req: Request, res: Response, next: NextFunction) =>
         if(emp){
 
             if(emp.administrador?.estatus === '0'){
-                return res.status(401).json({
+                return res.status(403).json({
                     status: false,
                     message: "Acceso Denegado"
                 })
@@ -31,7 +31,7 @@ const policyEmpleado = async(req: Request, res: Response, next: NextFunction) =>
             if(emp.idAdministrador === idKind ){
                 next();
             }else{
-                res.status(401).json({
+                res.status(403).json({
                     status: false,
                     message: "Acceso no Autorizado"
                 });

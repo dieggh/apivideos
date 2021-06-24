@@ -1,8 +1,8 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { postSignIn, postSignUp, postRefreshToken, postSignUpTitular, postSignInMobile } from '../controllers/AuthController';
 import { validateRequest } from '../helpers/validateRequest';
 import { PersonaValidation, UsuarioValidation } from '../helpers/validations';
-import { isAuthAdmin } from '../middlewares/isAuth';
+import { isAuthAdmin, isAuthUser, verifyToken } from '../middlewares/isAuth';
 import cors from 'cors';
 
 const router = express.Router();
@@ -19,6 +19,12 @@ router.post('/api/auth/signin',
 
 router.post('/api/auth/refreshToken', postRefreshToken);
 
+router.get('/api/auth/check', verifyToken, ( req: Request, res: Response ) => {
+    res.status(200).json({
+        status: true
+    });
+});
+
 router.post('/api/admin/signup', isAuthAdmin,
     new PersonaValidation().validation,
     new UsuarioValidation().validation,
@@ -30,6 +36,7 @@ router.post('/api/admin/signupTitular', isAuthAdmin,
     new UsuarioValidation().validation,
     validateRequest,
     postSignUpTitular);
+
 
 
 export { router as authRoute }

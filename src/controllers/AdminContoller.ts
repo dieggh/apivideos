@@ -108,7 +108,7 @@ const getAdministradores = async (req: Request, res: Response) => {
                 administradores: admin
             })
         }else{
-            res.status(401).json({
+            res.status(403).json({
                 status: false,
                 message: "Acceso denegado"
             })
@@ -174,7 +174,7 @@ const deleteAdministrador = async ( req: Request, res: Response) => {
                 status: true
             });
         }else{
-            res.status(401).json({
+            res.status(403).json({
                 status: true
             });
         }        

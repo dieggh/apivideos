@@ -10,7 +10,7 @@ import { categoriaRouter } from './routes/categoria';
 import { capituloRouter } from './routes/capitulo';
 import { empleadoMobileRouter } from './routes/mobile';
 import { Empleado_Capitulo } from "./models/Empleado_Capitulo";
-import { isAuthEmployer } from "./middlewares/isAuth";
+import { verifyToken } from "./middlewares/isAuth";
 import { policyEmpleadoCapitulo } from "./middlewares/policyCapitulo";
 import { validateRequest } from "./helpers/validateRequest";
 import { param } from "express-validator";
@@ -22,7 +22,7 @@ const app = express();
 app.use(express.json({ limit: '100mb' }));
 
 app.use('/files/:id',
-    isAuthEmployer,
+    verifyToken,
     [
         param('id')
             .notEmpty()
@@ -74,6 +74,7 @@ const sync = async () => {
     console.log(eerror)
 });*/
 //sync();
+app.use(cors());
 app.use(authRoute);
 app.use(departamentoRoute);
 app.use(empleadoRoute);

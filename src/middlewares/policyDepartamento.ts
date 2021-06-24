@@ -22,7 +22,7 @@ const policyDepartamento = async(req: Request, res: Response, next: NextFunction
             if(depar.length > 0 ){
                 next();
             }else{
-                res.status(401).json({
+                res.status(403).json({
                     status: false,
                     message: "Acceso no Autorizado"
                 });

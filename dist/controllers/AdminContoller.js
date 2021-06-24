@@ -107,7 +107,7 @@ const getAdministradores = (req, res) => __awaiter(void 0, void 0, void 0, funct
             });
         }
         else {
-            res.status(401).json({
+            res.status(403).json({
                 status: false,
                 message: "Acceso denegado"
             });

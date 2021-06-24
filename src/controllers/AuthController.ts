@@ -59,7 +59,7 @@ const postSignIn = async (req: Request, res: Response) => {
             idkind = admin.id;
             user = admin.usuario!;
         } else {
-            return res.status(401).json({
+            return res.status(403).json({
                 status: false,
                 message: "Usuario o contraseña incorrecta",
             });
@@ -69,7 +69,7 @@ const postSignIn = async (req: Request, res: Response) => {
         if (user !== null) {
 
             if (!await Password.compare(user.password, password)) {
-                return res.status(401).json({
+                return res.status(403).json({
                     status: false,
                     message: "Usuario o contraseña incorrecta",
                     user: null
@@ -95,7 +95,7 @@ const postSignIn = async (req: Request, res: Response) => {
             });
 
         } else {
-            res.status(401).json({
+            res.status(403).json({
                 status: false,
                 message: "Usuario o contraseña incorrecta",
                 user: null
@@ -136,7 +136,7 @@ const postSignInMobile = async (req: Request, res: Response) => {
         });
 
         if (emp === null) {
-            return res.status(401).json({
+            return res.status(403).json({
                 status: false,
                 message: "Usuario o contraseña incorrecta",
             });
@@ -146,7 +146,7 @@ const postSignInMobile = async (req: Request, res: Response) => {
         }
         
             if (!await Password.compare(user.password, password)) {
-                return res.status(401).json({
+                return res.status(403).json({
                     status: false,
                     message: "Usuario o contraseña incorrecta",
                     user: null
@@ -282,7 +282,7 @@ const postRefreshToken = async (req: Request, res: Response) => {
         
         if (token && refreshToken) {
 
-            const decodedToken = jwt.decode(token) as refreshTokenDecoded;
+            const decodedToken = jwt.decode(token.replace("Bearer ", "")) as refreshTokenDecoded;
             
             if ( Date.now() > decodedToken.exp * 1000 ) {
                 
@@ -316,20 +316,20 @@ const postRefreshToken = async (req: Request, res: Response) => {
     
                         })
                     } else {
-                        res.status(401).send({
+                        res.status(403).json({
                             status: false,
                             message: "Usuario no Autorizado"
                         })
                     }
                 }else{
-                    res.status(401).send({
+                    res.status(401).json({
                         status: false,
                         message: "Token Inválido"
                     })
                 }
                
             } else {
-                res.status(200).send({
+                res.status(200).json({
                     status: false,
                     message: "Token no expirado"
                 })

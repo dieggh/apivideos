@@ -26,7 +26,7 @@ const isAuthAdmin = (req: Request, res: Response, next: NextFunction) => {
             req.currentUser = payload;
             next();
         }else{
-            res.status(401).json({
+            res.status(403).json({
                 message: "Permisos Insuficientes",
                 status: false
             });
@@ -49,7 +49,7 @@ const isAuthUser = (req: Request, res: Response, next: NextFunction) => {
             req.currentUser = payload;
             next();
         }else{
-            return res.status(401).json({
+            return res.status(403).json({
                 message: "Permisos Insuficientes",
                 status: false
             });
@@ -71,7 +71,7 @@ const isAuthEmployer = (req: Request, res: Response, next: NextFunction) =>{
             req.currentUser = payload;
             next();
         }else{
-            res.status(401).json({
+            res.status(403).json({
                 message: "Permisos Insuficientes",
                 status: false
             });
@@ -103,8 +103,23 @@ const isAuth = (req: Request, res: Response,) => {
     }
 }
 
+const verifyToken = (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const payload = isAuth(req, res) as UserPayload;
+        if(payload){
+            req.currentUser = payload;
+            next();
+        }                                        
+    } catch (error) {
+        res.status(401).json({
+            message: error,
+            status: false
+        })
+    }
+}
 export {
     isAuthAdmin,
     isAuthUser,
-    isAuthEmployer
+    isAuthEmployer,
+    verifyToken
 };

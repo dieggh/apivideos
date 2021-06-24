@@ -109,7 +109,7 @@ const getEmpleados = async (req: Request, res: Response) => {
                     empleados
                 });
             } else {
-                return res.status(401).json({
+                return res.status(403).json({
                     status: false,
                     message: "Administrador no habilitado"
                 });
@@ -140,7 +140,7 @@ const getEmpleadoById = async (req: Request, res: Response) => {
                     }
                 }]
             });
-            return res.status(401).json({
+            return res.status(200).json({
                 status: true,
                 empleado: empleado
             });
@@ -156,7 +156,7 @@ const getEmpleadoById = async (req: Request, res: Response) => {
                 });
 
                 if (empleado.length > 0) {
-                    return res.status(401).json({
+                    return res.status(200).json({
                         status: true,
                         empleado: empleado[0]
                     });
@@ -168,7 +168,7 @@ const getEmpleadoById = async (req: Request, res: Response) => {
                 }
 
             } else {
-                return res.status(401).json({
+                return res.status(403).json({
                     status: false,
                     message: "Administrador no habilitado"
                 });
