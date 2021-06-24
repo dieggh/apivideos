@@ -14,6 +14,8 @@ import { verifyToken } from "./middlewares/isAuth";
 import { policyEmpleadoCapitulo } from "./middlewares/policyCapitulo";
 import { validateRequest } from "./helpers/validateRequest";
 import { param } from "express-validator";
+import { Departamento_Empleado } from "./models/Departamento_Empleado";
+import { Departamento_Categoria } from "./models/Departamento_Categoria";
 
 
 const express = require('express');
@@ -62,6 +64,14 @@ const sync = async () => {
         error
     })*/
 
+    await Departamento_Empleado.sync({ force: true }).catch(error => {
+        console.log(error)
+    })
+
+    await Departamento_Categoria.sync({ force: true }).catch(error => {
+        console.log(error)
+    })
+
     await Empleado_Capitulo.sync({ force: true }).catch(error => {
         console.log(error)
     })
@@ -73,7 +83,7 @@ const sync = async () => {
 }).catch(eerror =>{
     console.log(eerror)
 });*/
-//sync();
+sync();
 app.use(cors());
 app.use(authRoute);
 app.use(departamentoRoute);

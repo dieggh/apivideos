@@ -63,7 +63,7 @@ class Departamento_Categoria extends Model<Departamento_CategoriaAttributes, Dep
     }
   );
 
-  Categoria.belongsToMany(Departamento, { through: 'Departamento_Categoria', foreignKey: 'idDepartamento' });
-  Departamento.belongsToMany(Categoria, { through: 'Departamento_Categoria', foreignKey: 'idCategoria'  });
+  Categoria.belongsToMany(Departamento, { through: 'Departamento_Categoria', foreignKey: 'idCategoria' });
+  Departamento.belongsToMany(Categoria, { through: 'Departamento_Categoria', foreignKey: 'idDepartamento'  });
 
   export { Departamento_Categoria };
