@@ -60,7 +60,7 @@ class Persona extends Model<PersonaAttributes, PersonaCreationAttributes>
         allowNull: true,
       },
       telefono:{
-        type: DataTypes.STRING(10),
+        type: DataTypes.STRING(20),
         allowNull: true
       },
       ip: {

@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { postSignIn, postSignUp, postRefreshToken, postSignUpTitular, postSignInMobile } from '../controllers/AuthController';
+import { postSignIn, postSignUp, postRefreshToken, postSignUpTitular, postSignInMobile, postCheckSesion } from '../controllers/AuthController';
 import { validateRequest } from '../helpers/validateRequest';
 import { PersonaValidation, UsuarioValidation } from '../helpers/validations';
 import { isAuthAdmin, isAuthUser, verifyToken } from '../middlewares/isAuth';
@@ -19,11 +19,7 @@ router.post('/api/auth/signin',
 
 router.post('/api/auth/refreshToken', postRefreshToken);
 
-router.get('/api/auth/check', verifyToken, ( req: Request, res: Response ) => {
-    res.status(200).json({
-        status: true
-    });
-});
+router.get('/api/auth/check', verifyToken, postCheckSesion);
 
 router.post('/api/admin/signup', isAuthAdmin,
     new PersonaValidation().validation,

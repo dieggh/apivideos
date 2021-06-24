@@ -83,7 +83,7 @@ const sync = async () => {
 }).catch(eerror =>{
     console.log(eerror)
 });*/
-sync();
+//sync();
 app.use(cors());
 app.use(authRoute);
 app.use(departamentoRoute);

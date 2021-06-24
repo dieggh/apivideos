@@ -20,8 +20,9 @@ class PersonaValidation extends RequestValidation {
             .withMessage("Primer Apellido Requerido"),
         body('telefono')
             .isLength({
-                max: 10, min: 10
+                max: 15, min: 10
             })
+            .withMessage("Teléfono Inválido")
     ];
 }
 
@@ -37,7 +38,7 @@ class UsuarioValidation extends RequestValidation {
         body("password")
             .trim()
             .isLength({
-                min: 8,
+                min: 6,
                 max: 16
             })
             .withMessage("Contraseña Requerida"),
