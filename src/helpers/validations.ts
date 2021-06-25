@@ -10,15 +10,15 @@ class PersonaValidation extends RequestValidation {
 
     validation = [
 
-        body('nombre')
+        body('persona.nombre')
             .trim()
             .notEmpty()
             .withMessage("Nombre Requerido"),
-        body('primerAp')
+        body('persona.primerAp')
             .trim()
             .notEmpty()
             .withMessage("Primer Apellido Requerido"),
-        body('telefono')
+        body('persona.telefono')
             .isLength({
                 max: 15, min: 10
             })
@@ -35,14 +35,14 @@ class DepartamentoValidation extends RequestValidation {
 
 class UsuarioValidation extends RequestValidation {
     validation = [
-        body("password")
+        body("usuario.password")
             .trim()
             .isLength({
                 min: 6,
                 max: 16
             })
             .withMessage("Contraseña Requerida"),
-        body('email')
+        body('usuario.email')
             .isEmail()
             .withMessage("El Correo Electrónico debe de ser válido")
             .custom(async value => {

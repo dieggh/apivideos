@@ -10,12 +10,16 @@ const putAdministrador = async (req: Request, res: Response) => {
     const t = await sequelize.transaction();
     try {
         const { id } = req.params;
-        const { noInterno, telefono, password, email } = req.body;
+        const { noInterno, persona: { telefono, segundoAp }, usuario: { password, email} } = req.body;
 
         const admin = await Administrador.findByPk(id, {transaction: t});
 
         if (admin) {
             admin.noInterno = noInterno;
+            const userUpdated = {
+                id: 0,
+                email: email             
+            };            
             if (password || email) {
                 const user = await admin.getUsuario();
                 if (password && password.trim().length > 7) {
@@ -28,8 +32,8 @@ const putAdministrador = async (req: Request, res: Response) => {
                         message: "La contraseña debe de tener al menos 8 carácteres"
                     });
                 }
-
-                if (email) {
+                
+                if (email && (email !== user.email)) {
 
                     if (!(/.+@.+..+/).test(email)) {
                         await t.rollback();
@@ -58,16 +62,25 @@ const putAdministrador = async (req: Request, res: Response) => {
                 }
 
                 await user.save({ transaction: t });
+                userUpdated.email = user.email;
+                userUpdated.id = user.id;
             }
 
             const persona = await admin.getPersona({transaction: t});
 
             persona.telefono = telefono;
+            persona.segundoAp = segundoAp;
             await admin.save({transaction: t});
             await persona.save({transaction: t});
             await t.commit();
+            
             return res.status(200).json({
-                status: true
+                status: true,
+                admin: {
+                    ...admin.get({plain: true}),
+                    persona: { ...persona.get({plain: true}) },
+                    usuario: { ...userUpdated }                  
+                }
             });
         }
 

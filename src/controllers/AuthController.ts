@@ -183,7 +183,7 @@ const postSignUp = async (req: Request, res: Response) => {
     const t = await sequelize.transaction();
     try {
 
-        const { nombre, primerAp, segundoAp, telefono, email, password } = req.body;
+        const { persona: { nombre, primerAp, segundoAp, telefono} , usuario: { email, password }, noInterno } = req.body;
 
         const per = await Persona.create({
             ip: req.ip,
@@ -196,24 +196,33 @@ const postSignUp = async (req: Request, res: Response) => {
         });
 
         const admin = await per.createAdministrador({
-            noInterno: "prueba123"
+            noInterno: noInterno
         }, {
             transaction: t
         });
 
         const hashedPass = await Password.toHash(password);
 
-        await admin.createUsuario({
+        const user = await admin.createUsuario({
             email,
             nivelAcceso: 0,
             password: hashedPass,
         }, {
             transaction: t
         });
-
+                
+        const perCreated = per.get({plain: true});
+        const adminCreated = admin.get({plain: true});
+        const userCreated = user.get({plain: true});
         await t.commit();
+
         res.status(200).json({
-            status: true
+            status: true,
+            admin: {
+                persona: {...perCreated},
+                ...adminCreated,
+                usuario: {...userCreated, password: null}
+            }
         });
 
     } catch (error) {
@@ -231,8 +240,8 @@ const postSignUpTitular = async (req: Request, res: Response) => {
     const t = await sequelize.transaction();
     try {
 
-        const { nombre, primerAp, segundoAp, telefono, email, password, noInterno } = req.body;
-
+        const { persona: { nombre, primerAp, segundoAp, telefono } , usuario: { email, password}, noInterno } = req.body;
+        console.log("add" + nombre)
         const per = await Persona.create({
             ip: req.ip,
             nombre,
@@ -299,7 +308,7 @@ const postRefreshToken = async (req: Request, res: Response) => {
 
                     if (user && user.estatus === "1") {
                         if (user.token !== refreshToken) {
-                            return res.status(401).send({
+                            return res.status(403).send({
                                 status: false,
                                 message: "Token inválido"
                             });
@@ -322,7 +331,7 @@ const postRefreshToken = async (req: Request, res: Response) => {
                         })
                     }
                 } else {
-                    res.status(401).json({
+                    res.status(403).json({
                         status: false,
                         message: "Token Inválido"
                     })
@@ -336,7 +345,7 @@ const postRefreshToken = async (req: Request, res: Response) => {
             }
 
         } else {
-            res.status(401).json({
+            res.status(403).json({
                 status: false,
                 message: "Token no proveido"
             });
