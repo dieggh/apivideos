@@ -77,8 +77,8 @@ const postSignIn = async (req: Request, res: Response) => {
             }
 
             const typeUser = user.nivelAcceso === 0 ? "superAdmin" : "admin";
-
-            const token = jwt.sign({ email: user.email, id: user.id, nivelAcceso: user.nivelAcceso, typeUser, idKind: idkind }, config.KEY_SECRET, { expiresIn: '8h' });
+            
+            const token = jwt.sign({ email: user.email, id: user.id, nivelAcceso: user.nivelAcceso, typeUser, idKind: idkind }, config.KEY_SECRET, { expiresIn: '12h' });
 
             const refreshToken = jwt.sign({ id: user.id, nivelAcceso: user.nivelAcceso }, config.KEY_SECRET, { expiresIn: '15 days' });
 
@@ -295,29 +295,32 @@ const postRefreshToken = async (req: Request, res: Response) => {
 
             if (Date.now() > decodedToken.exp * 1000) {
 
-                const payload = jwt.verify(refreshToken, config.KEY_SECRET) as UserRefresh;
+                const payload = jwt.verify(refreshToken.replace("Bearer ", ""), config.KEY_SECRET) as UserRefresh;
 
                 if (payload.id === decodedToken.id) {
                     const user = await Usuario.findByPk(payload.id, {
                         attributes: ["email", "id", "nivelAcceso", "estatus", "token"],
                         include: {
-                            model: payload.nivelAcceso === 0 ? Administrador : Empleado,
+                            model:  payload.nivelAcceso === 0 ? Administrador : Empleado,                             
                             attributes: ["id"]
                         }
                     });
 
                     if (user && user.estatus === "1") {
-                        if (user.token !== refreshToken) {
+                        if (user.token !== refreshToken.replace("Bearer ", "")) {
                             return res.status(403).send({
                                 status: false,
                                 message: "Token inválido"
                             });
                         }
                         const typeUser = user.nivelAcceso === 0 ? "superAdmin" : user.nivelAcceso === 1 ? "admin" : "empleado";
-                        const token = jwt.sign({ email: user.email, id: user.id, nivelAcceso: user.nivelAcceso, typeUser, idKind: user.empleado ? user.empleado.id : user.administrador?.id }, config.KEY_SECRET, { expiresIn: '12h' });
+                        
+                        const token = jwt.sign({ email: user.email, id: user.id, nivelAcceso: user.nivelAcceso, typeUser, 
+                            idKind: user.Empleado ? user.id : user.Administrador?.id }, config.KEY_SECRET, { expiresIn: '12h' });
 
                         const newRefreshToken = jwt.sign({ id: user.id, nivelAcceso: user.nivelAcceso }, config.KEY_SECRET, { expiresIn: '30 days' });
-
+                        user.token = newRefreshToken;
+                        await user.save();
                         return res.status(200).send({
                             status: true,
                             token: token,

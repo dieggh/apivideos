@@ -27,8 +27,8 @@ class Usuario extends Model<UsuarioAttributes, UsuarioCreationAttributes>
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
 
-    public readonly empleado?: Empleado; // Note this is optional since it's only populated when explicitly requested in code
-    public readonly administrador?: Administrador; // Note this is optional since it's only populated when explicitly requested in code
+    public readonly Empleado?: Empleado; // Note this is optional since it's only populated when explicitly requested in code
+    public readonly Administrador?: Administrador; // Note this is optional since it's only populated when explicitly requested in code
   }
 
   Usuario.init(

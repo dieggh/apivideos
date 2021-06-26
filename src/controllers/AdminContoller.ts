@@ -116,10 +116,14 @@ const getAdministradores = async (req: Request, res: Response) => {
                     }
                 ]
             });
-            res.status(200).json({
-                status: true,
-                administradores: admin
-            })
+
+            setTimeout(() => {
+                res.status(200).json({
+                    status: true,
+                    administradores: admin
+                })    
+            }, 2000);
+            
         }else{
             res.status(403).json({
                 status: false,
