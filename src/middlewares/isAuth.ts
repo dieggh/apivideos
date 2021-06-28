@@ -31,10 +31,9 @@ const isAuthAdmin = (req: Request, res: Response, next: NextFunction) => {
                 status: false
             });
         }
-    } catch (error) {
-        console.log(error)
+    } catch (error) {        
         res.status(401).json({
-            message: "Token no Proveído",
+            message: error.message,
             status: false
         })
     }
@@ -57,7 +56,7 @@ const isAuthUser = (req: Request, res: Response, next: NextFunction) => {
     
     } catch (error) {
         res.status(401).json({
-            message: error,
+            message: error.message,
             status: false
         })
     }
@@ -95,10 +94,9 @@ const isAuth = (req: Request, res: Response,) => {
             return payload;
 
         } else {
-            throw "Token no Proveído";
+            throw new Error("Token no Proveído");
         }
-    } catch (error) {
-        console.log(error)
+    } catch (error) {        
         throw error;
     }
 }

@@ -15,8 +15,8 @@ import { Password } from "../utils/password";
 const postEmpleado = async (req: Request, res: Response) => {
     const t = await sequelize.transaction();
     try {
-        const { nombre, primerAp, segundoAp, telefono, email, password, idDepartamento, noInterno,
-            calle, cp, numExt, numInt, ciudad, colonia, idEstado
+        const { persona: { nombre, primerAp, segundoAp, telefono }, usuario: { email, password }, idDepartamento, empleado: { noInterno,
+            calle, cp, numExt, numInt, ciudad, colonia, idEstado }
         } = req.body;
         const { idKind } = req.currentUser!;
 
@@ -83,7 +83,16 @@ const getEmpleados = async (req: Request, res: Response) => {
     try {
         const { idKind, nivelAcceso } = req.currentUser!;
         if (nivelAcceso === 0) {
-            const empleados = await Empleado.findAll();
+            const empleados = await Empleado.findAll({
+                include:[
+                    {
+                        model: Usuario, as: 'usuario'
+                    },
+                    {
+                        model: Persona, as: 'persona'
+                    }
+                ]
+            });
 
             return res.status(200).json({
                 status: true,
@@ -189,7 +198,7 @@ const putEmpleado = async (req: Request, res: Response) => {
         const { id } = req.params;
         const { nivelAcceso, idKind } = req.currentUser!;
         const { empleado: { numExt, numInt, calle, ciudad, cp, colonia, noInterno, idEstado },
-                persona:{ segundoAp, telefono} , usuario: { password, email } } = req.body;
+            persona: { segundoAp, telefono }, usuario: { password, email } } = req.body;
 
         const empleado = await Empleado.findByPk(nivelAcceso === 2 ? idKind : id, { transaction: t });
 
@@ -257,7 +266,7 @@ const putEmpleado = async (req: Request, res: Response) => {
             const persona = await empleado.getPersona({
                 transaction: t
             });
-           
+
             persona.segundoAp = segundoAp;
             persona.telefono = telefono;
             persona.ip = req.ip;
@@ -364,11 +373,11 @@ const getPerfil = async (req: Request, res: Response) => {
                 {
                     model: Usuario, as: 'usuario',
                     attributes: {
-                        exclude: ["password"]
+                        exclude: ["password", "token"]
                     }
                 },
                 {
-                    model: Departamento,
+                    model: Departamento, as: 'Departamento',
                     through: {
                         attributes: []
                     }
@@ -381,6 +390,7 @@ const getPerfil = async (req: Request, res: Response) => {
             empleado: empleado
         });
     } catch (error) {
+        console.log(error)
         return res.status(500).json({
             status: false
         });
@@ -395,6 +405,9 @@ const getCapitulos = async (req: Request, res: Response) => {
             attributes: ["id"],
             include: {
                 model: Departamento, as: 'Departamento',
+                attributes: {
+                    exclude: ["createdAt", "updatedAt", "ip"]
+                },
                 through: {
                     attributes: []
                 },
@@ -404,10 +417,22 @@ const getCapitulos = async (req: Request, res: Response) => {
                         through: {
                             attributes: []
                         },
+                        where:{
+                            estatus: '1'
+                        },
+                        attributes: {
+                            exclude: ["createdAt", "updatedAt", "ip"]
+                        },
                         include: [
                             {
-                                model: Capitulo, as: 'capitulos'
-                            }
+                                model: Capitulo, as: 'capitulos',
+                                attributes: {
+                                    exclude: ["createdAt", "updatedAt", "ip"]
+                                },
+                                where:{
+                                    estatus: '1'
+                                },
+                            }                           
                         ]
                     }
                 ]
@@ -431,7 +456,7 @@ const postIniciarCapitulo = async (req: Request, res: Response) => {
 
     try {
         const { idKind } = req.currentUser!;
-        const { idCapitulo } = req.body;                
+        const { idCapitulo } = req.body;
 
         await Empleado_Capitulo.create({
             idCapitulo: idCapitulo,
@@ -465,22 +490,22 @@ const putFinalizarCapitulo = async (req: Request, res: Response) => {
             }
         });
 
-        if(empCap){
-            
+        if (empCap) {
+
             empCap.fechaConclusion = new Date(Date.now());
             empCap.estatus = '2';
             empCap.save();
-            
+
             res.status(200).json({
                 status: true
             });
-        }else{
+        } else {
             res.status(404).json({
                 status: false,
                 message: "No se inició la vista del capítulo"
             });
         }
-        
+
     } catch (error) {
         res.status(500).json({
             status: false
@@ -489,14 +514,14 @@ const putFinalizarCapitulo = async (req: Request, res: Response) => {
     }
 }
 
-const getCapituloById = async (req: Request, res: Response) =>{
+const getCapituloById = async (req: Request, res: Response) => {
     try {
-        
+
         const { id } = req.params;
 
         const cap = await Capitulo.findByPk(id);
 
-        cap!.path =  `${process.env.SERVE_FILES!}/files/${id}/${cap!.path}`;
+        cap!.path = `${process.env.SERVE_FILES!}/files/${id}/${cap!.path}`;
 
         /*enviar el archivo directamente res.status(200).sendFile( 'videos/1/cronometro4xd.mp4', {
             root: 'dist/public'
@@ -510,7 +535,7 @@ const getCapituloById = async (req: Request, res: Response) =>{
     } catch (error) {
         console.log(error)
         res.status(500).json({
-            status: false            
+            status: false
         });
     }
 }

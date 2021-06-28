@@ -4,6 +4,7 @@ import { getCapituloById, getCapitulos, getPerfil, postIniciarCapitulo, putEmple
 import { validateRequest } from "../helpers/validateRequest";
 import { isAuthEmployer } from "../middlewares/isAuth";
 import { policyEmpleadoCapitulo } from "../middlewares/policyCapitulo";
+import { policyEmpleado } from "../middlewares/policyEmpleado";
 
 const router = Router();
 
@@ -14,6 +15,7 @@ router.get('/api/mobile/empleado',
 
 router.put('/api/mobile/empleado',
     isAuthEmployer,
+    policyEmpleado,
     putEmpleado
 );
 

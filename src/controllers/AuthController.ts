@@ -362,6 +362,86 @@ const postRefreshToken = async (req: Request, res: Response) => {
     }
 }
 
+const postMobileRefreshToken = async (req: Request, res: Response) => {
+    try {
+
+        const token = req.headers.authorization?.toString();
+        const refreshToken = req.headers["access-token"]?.toString();
+
+        if (token && refreshToken) {
+
+
+            const decodedToken = jwt.decode(token.replace("Bearer ", "")) as refreshTokenDecoded;
+
+            if (Date.now() > decodedToken.exp * 1000) {
+
+                const payload = jwt.verify(refreshToken.replace("Bearer ", ""), config.KEY_SECRET) as UserRefresh;
+
+                if (payload.id === decodedToken.id) {
+                    const user = await Usuario.findByPk(payload.id, {
+                        attributes: ["email", "id", "nivelAcceso", "estatus", "token"],
+                        include: {
+                            model: Empleado,                             
+                            attributes: ["id"]
+                        }
+                    });
+
+                    if (user && user.estatus === "1") {
+                        if (user.token !== refreshToken.replace("Bearer ", "")) {
+                            return res.status(403).send({
+                                status: false,
+                                message: "Token inválido"
+                            });
+                        }
+                        const typeUser = "empleado";
+                        
+                        const token = jwt.sign({ email: user.email, id: user.id, nivelAcceso: 2, typeUser, 
+                            idKind: user.Empleado?.id }, config.KEY_SECRET, { expiresIn: '12h' });
+
+                        const newRefreshToken = jwt.sign({ id: user.id, nivelAcceso: 2 }, config.KEY_SECRET, { expiresIn: '30 days' });
+                        user.token = newRefreshToken;
+                        await user.save();
+                        return res.status(200).send({
+                            status: true,
+                            token: token,
+                            refreshToken: newRefreshToken
+
+                        })
+                    } else {
+                        res.status(403).json({
+                            status: false,
+                            message: "Usuario no Autorizado"
+                        })
+                    }
+                } else {
+                    res.status(403).json({
+                        status: false,
+                        message: "Token Inválido"
+                    })
+                }
+
+            } else {
+                res.status(200).json({
+                    status: false,
+                    message: "Token no expirado"
+                })
+            }
+
+        } else {
+            res.status(403).json({
+                status: false,
+                message: "Token no proveido"
+            });
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            status: false,
+            sentToLogin: true
+        })
+    }
+}
+
 const postCheckSesion = async (req: Request, res: Response) => {
     try {
         const { idKind, nivelAcceso, email, id } = req.currentUser!;
@@ -402,6 +482,7 @@ export {
     postSignIn,
     postSignUp,
     postRefreshToken,
+    postMobileRefreshToken,
     postSignUpTitular,
     postSignInMobile,
     postCheckSesion

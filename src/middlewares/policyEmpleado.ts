@@ -7,8 +7,8 @@ const policyEmpleado = async(req: Request, res: Response, next: NextFunction) =>
         const { id } = req.params;
         const { idKind, nivelAcceso } = req.currentUser!;
         
-        const emp = await Empleado.findByPk(id, {
-            attributes: ["idAdministrador"],
+        const emp = await Empleado.findByPk(id ? id: idKind, {
+            attributes: ["idAdministrador", "id"],
             include: {
                 model: Administrador, as: 'administrador',
                 attributes: ["id", "estatus"]
@@ -27,8 +27,9 @@ const policyEmpleado = async(req: Request, res: Response, next: NextFunction) =>
             if(nivelAcceso === 0){
                 return next();
             }
-
-            if(emp.idAdministrador === idKind ){
+            console.log(idKind);
+            console.log(emp.id);
+            if(emp.idAdministrador === idKind || emp.id === idKind){
                 next();
             }else{
                 res.status(403).json({
