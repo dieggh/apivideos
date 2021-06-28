@@ -8,28 +8,30 @@ interface EstadoAttributes{
 
 interface EstadoCreationAttributes extends Optional<EstadoAttributes, "id"> {}
 
-// We need to declare an interface for our model that is basically what our class would be
-interface EstadoInstance
-  extends Model<EstadoAttributes, EstadoCreationAttributes>,
-    EstadoAttributes {}
+class Estado extends Model<EstadoAttributes, EstadoCreationAttributes>
+  implements EstadoAttributes{
+    public id!: number;
+    public nombre!: string;
+  }
 
-const EstadoModel = sequelize.define<EstadoInstance>("Estado", {
-    id: {
-      primaryKey: true,
-      type: DataTypes.INTEGER.UNSIGNED,
+  Estado.init(
+    {
+      id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      nombre: {
+        type: new DataTypes.STRING(128),        
+      }
+      
     },
-    nombre:{
-      type: DataTypes.STRING,
-    },
-        
-  },{    
-    timestamps: false,
-    freezeTableName: true
-  });
+    {
+      tableName: "Estado",  
+      timestamps: false,    
+      sequelize, // passing the `sequelize` instance is required
+    }
+  );
 
-  /*EstadoModel.belongsTo(PersonaModel, { foreignKey: 'idPersona' });
-  PersonaModel.hasMany(EstadoModel, { foreignKey: 'idPersona' });
-
-  EstadoModel.belongsTo(UsuarioModel, { foreignKey: 'idUsuario' });
-  UsuarioModel.hasOne(EstadoModel, { foreignKey: 'idUsuario' });*/
-  export { EstadoModel };
+  
+  export { Estado };

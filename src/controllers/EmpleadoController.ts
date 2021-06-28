@@ -7,6 +7,7 @@ import { Departamento_Categoria } from "../models/Departamento_Categoria";
 import { Departamento_Empleado } from "../models/Departamento_Empleado";
 import { Empleado } from "../models/Empleado";
 import { Empleado_Capitulo } from "../models/Empleado_Capitulo";
+import { Estado } from "../models/Estado";
 import { Persona } from "../models/Persona";
 import { Usuario } from "../models/Usuario";
 import { sequelize } from "../utils/database";
@@ -15,12 +16,12 @@ import { Password } from "../utils/password";
 const postEmpleado = async (req: Request, res: Response) => {
     const t = await sequelize.transaction();
     try {
-        const { persona: { nombre, primerAp, segundoAp, telefono }, usuario: { email, password }, idDepartamento, empleado: { noInterno,
-            calle, cp, numExt, numInt, ciudad, colonia, idEstado }
+        const { persona: { nombre, primerAp, segundoAp, telefono }, usuario: { email, password }, idDepartamento,  noInterno,
+            calle, cp, numExt, numInt, ciudad, colonia, idEstado 
         } = req.body;
         const { idKind } = req.currentUser!;
 
-        const depar = await Departamento.findByPk(idDepartamento, { attributes: ["id"] });
+        const depar = await Departamento.findByPk(idDepartamento, { attributes: ["id", "nombre"] });
         const persona = await Persona.create({
             nombre: nombre,
             primerAp: primerAp,
@@ -43,10 +44,10 @@ const postEmpleado = async (req: Request, res: Response) => {
             idAdministrador: idKind
         }, {
             transaction: t
-        });
+        });        
 
         const hashedPass = await Password.toHash(password);
-        await empleado.createUsuario({
+        const usuario = await empleado.createUsuario({
             email: email,
             password: hashedPass,
             nivelAcceso: 2,
@@ -54,6 +55,7 @@ const postEmpleado = async (req: Request, res: Response) => {
             transaction: t
         });
 
+        let addDepartamento = false;
         if (depar) {
             await Departamento_Empleado.create({
                 idDepartamento: depar.id,
@@ -62,16 +64,37 @@ const postEmpleado = async (req: Request, res: Response) => {
                 ip: req.ip
             }, {
                 transaction: t
-            });
+            });                     
+            addDepartamento = true;
+        }
+        
+
+        const empleadoCreated = {
+            ...empleado.get( {plain: true} ),        
+            Departamento: depar ? [
+                {
+                    id: idDepartamento,
+                    nombre: depar.nombre
+                }
+            ] : [],
+            persona:{
+                ...persona.get( {plain: true} )
+            },
+            usuario:{
+                ...usuario.get( {plain: true} ),
+                password: null
+            }
         }
 
         await t.commit();
 
         res.status(200).json({
-            status: true
+            status: true,
+            empleado: empleadoCreated
         });
 
     } catch (error) {
+        console.log(error)
         await t.rollback();
         res.status(500).json({
             status: false
@@ -90,9 +113,22 @@ const getEmpleados = async (req: Request, res: Response) => {
                     },
                     {
                         model: Persona, as: 'persona'
+                    },
+                    {
+                        model: Estado, as: 'estado'
+                    },
+                    {
+                        model: Departamento, as: 'Departamento',
+                        attributes: ["nombre", "id"],
+                        through:{
+                            attributes: [],
+                            where:{
+                                estatus: '1'
+                            }
+                        }
                     }
                 ]
-            });
+            });            
 
             return res.status(200).json({
                 status: true,
@@ -125,6 +161,26 @@ const getEmpleados = async (req: Request, res: Response) => {
             }
 
         }
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            status: false
+        });
+    }
+}
+
+const getEstados = async (req: Request, res: Response) => {
+    try {        
+        
+        const estados = await Estado.findAll();
+
+       
+        return res.status(200).json({
+                status: true,
+                estados
+            })
+       
 
     } catch (error) {
         res.status(500).json({
@@ -552,5 +608,6 @@ export {
     getCapitulos,
     postIniciarCapitulo,
     putFinalizarCapitulo,
-    getCapituloById
+    getCapituloById,
+    getEstados
 }

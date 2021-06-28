@@ -1,6 +1,6 @@
 import express from 'express';
 import { body, param } from 'express-validator';
-import { deleteEmpleado, getEmpleadoById, getEmpleados, postAsignarDepartamento, postEmpleado, putEmpleado } from '../controllers/EmpleadoController';
+import { deleteEmpleado, getEmpleadoById, getEmpleados, getEstados, postAsignarDepartamento, postEmpleado, putEmpleado } from '../controllers/EmpleadoController';
 
 import { validateRequest } from '../helpers/validateRequest';
 import { PersonaValidation, UsuarioValidation } from '../helpers/validations';
@@ -23,9 +23,15 @@ router.post('/api/empleado',
     postEmpleado
 );
 
+
+
 router.get('/api/empleado',
     isAuthUser,
     getEmpleados
+);
+
+router.get('/api/estado',    
+    getEstados
 );
 
 router.get('/api/empleado/:id',

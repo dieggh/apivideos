@@ -1,7 +1,8 @@
 import { Model ,Optional, DataTypes, Association, HasOneCreateAssociationMixin, HasOneGetAssociationMixin } from 'sequelize';
 import { sequelize } from './../utils/database';
 import { Administrador } from './Administrador';
-import { EstadoModel } from './Estado';
+import { Departamento } from './Departamento';
+import { Estado } from './Estado';
 import { Persona } from './Persona';
 import { Usuario } from './Usuario';
 
@@ -41,6 +42,7 @@ class Empleado extends Model<EmpleadoAttributes, EmpleadoCreationAttributes>
     public readonly usuario?: Usuario;
     public readonly persona?: Persona; // Note this is optional since it's only populated when explicitly requested in code
     public readonly administrador?: Administrador; // Note this is optional since it's only populated when explicitly requested in code
+    public readonly Departamento?: Departamento[]; // Note this is optional since it's only populated when explicitly requested in code
 
     public getPersona!: HasOneGetAssociationMixin<Persona>;
     public getUsuario!: HasOneGetAssociationMixin<Usuario>;
@@ -164,6 +166,9 @@ const EmpleadoModel = sequelize.define<EmpleadoInstance>("Empleado", {
   Persona.hasOne(Empleado,  {     
     foreignKey: 'idPersona',        
   });
+
+  Empleado.belongsTo(Estado, { foreignKey:'idEstado', as: 'estado' });
+  Estado.hasMany(Empleado, {foreignKey: 'idEstado', as: 'empleados'})
 //*  Empleado.belongsTo(EstadoModel, { foreignKey: 'idEstado' });
   //EstadoModel.hasMany(Empleado, { foreignKey: 'idEstado' });
 

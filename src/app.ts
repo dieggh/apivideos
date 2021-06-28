@@ -16,6 +16,7 @@ import { validateRequest } from "./helpers/validateRequest";
 import { param } from "express-validator";
 import { Departamento_Empleado } from "./models/Departamento_Empleado";
 import { Departamento_Categoria } from "./models/Departamento_Categoria";
+import { Estado } from "./models/Estado";
 
 
 const express = require('express');
@@ -64,17 +65,7 @@ const sync = async () => {
         error
     })*/
 
-    await Departamento_Empleado.sync({ force: true }).catch(error => {
-        console.log(error)
-    })
-
-    await Departamento_Categoria.sync({ force: true }).catch(error => {
-        console.log(error)
-    })
-
-    await Empleado_Capitulo.sync({ force: true }).catch(error => {
-        console.log(error)
-    })
+    await Estado.sync()
 
 }
 
