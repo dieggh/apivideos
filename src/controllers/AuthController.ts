@@ -183,7 +183,7 @@ const postSignUp = async (req: Request, res: Response) => {
     const t = await sequelize.transaction();
     try {
 
-        const { persona: { nombre, primerAp, segundoAp, telefono} , usuario: { email, password }, noInterno } = req.body;
+        const { persona: { nombre, primerAp, segundoAp, telefono} , usuario: { email, password, nivelAcceso }, noInterno } = req.body;
 
         const per = await Persona.create({
             ip: req.ip,
@@ -205,7 +205,7 @@ const postSignUp = async (req: Request, res: Response) => {
 
         const user = await admin.createUsuario({
             email,
-            nivelAcceso: 0,
+            nivelAcceso: nivelAcceso,
             password: hashedPass,
         }, {
             transaction: t

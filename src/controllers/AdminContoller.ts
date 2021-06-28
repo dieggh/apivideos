@@ -97,6 +97,34 @@ const putAdministrador = async (req: Request, res: Response) => {
     }
 }
 
+const patchEnableAdministrador = async (req: Request, res: Response) => {
+    
+    try {
+        const { id } = req.params;        
+
+        const admin = await Administrador.findByPk(id);
+
+        if (admin) {
+            admin.estatus = '1';
+            await admin.save();                       
+            return res.status(200).json({
+                status: true                
+            });
+        }
+
+        res.status(400).json({
+            status: false,
+            message: "Administrador no existe"
+        })
+
+    } catch (error) {
+        
+        res.status(500).json({
+            status: false
+        });
+    }
+}
+
 const getAdministradores = async (req: Request, res: Response) => {
     
     try {        
@@ -206,5 +234,6 @@ export {
     putAdministrador,
     getAdministradores,
     getAdministradorById,
-    deleteAdministrador
+    deleteAdministrador,
+    patchEnableAdministrador
 }

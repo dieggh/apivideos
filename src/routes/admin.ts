@@ -1,6 +1,6 @@
 import express from 'express';
 import { param } from 'express-validator';
-import { getAdministradorById, getAdministradores, putAdministrador } from '../controllers/AdminContoller';
+import { deleteAdministrador, getAdministradorById, getAdministradores, patchEnableAdministrador, putAdministrador } from '../controllers/AdminContoller';
 import { validateRequest } from '../helpers/validateRequest';
 import { PersonaValidation } from '../helpers/validations';
 import { isAuthAdmin, isAuthUser } from '../middlewares/isAuth';
@@ -38,5 +38,29 @@ router.get('/api/admin/:id',
     policyAdmin,
     getAdministradorById
 );
+
+router.delete('/api/admin/:id',
+    isAuthAdmin,
+    [
+        param('id')
+            .notEmpty().withMessage("El parámetro id es requerido")
+            .isNumeric().withMessage("El parámetro id debe ser entero")
+            
+    ],
+    policyAdmin,
+    deleteAdministrador
+);
+
+router.patch('/api/admin/:id',
+    isAuthAdmin,
+    [
+        param('id')
+            .notEmpty().withMessage("El parámetro id es requerido")
+            .isNumeric().withMessage("El parámetro id debe ser entero")
+            
+    ],
+    policyAdmin,
+    patchEnableAdministrador    
+)
 
 export { router as adminRouter };
