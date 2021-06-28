@@ -46,7 +46,7 @@ router.post('/api/mobile/iniciarCapitulo',
     postIniciarCapitulo   
 );
 
-router.put('/api/mobile/FinalizarCapitulo',
+router.put('/api/mobile/finalizarCapitulo',
     isAuthEmployer,
     [
         body('idCapitulo')

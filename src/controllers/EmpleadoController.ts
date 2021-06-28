@@ -188,8 +188,8 @@ const putEmpleado = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const { nivelAcceso, idKind } = req.currentUser!;
-        const { numExt, numInt, calle, ciudad, cp, colonia, noInterno, idEstado,
-            nombre, primerAp, segundoAp, telefono, password, email } = req.body;
+        const { empleado: { numExt, numInt, calle, ciudad, cp, colonia, noInterno, idEstado },
+                persona:{ segundoAp, telefono} , usuario: { password, email } } = req.body;
 
         const empleado = await Empleado.findByPk(nivelAcceso === 2 ? idKind : id, { transaction: t });
 
@@ -257,9 +257,7 @@ const putEmpleado = async (req: Request, res: Response) => {
             const persona = await empleado.getPersona({
                 transaction: t
             });
-
-            persona.nombre = nombre;
-            persona.primerAp = primerAp;
+           
             persona.segundoAp = segundoAp;
             persona.telefono = telefono;
             persona.ip = req.ip;
