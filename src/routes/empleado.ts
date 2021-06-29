@@ -1,6 +1,6 @@
 import express from 'express';
 import { body, param } from 'express-validator';
-import { deleteEmpleado, getEmpleadoById, getEmpleados, getEstados, postAsignarDepartamento, postEmpleado, putEmpleado } from '../controllers/EmpleadoController';
+import { deleteEmpleado, getEmpleadoById, getEmpleados, getEstados, patchEnableEmpleado, postAsignarDepartamento, postEmpleado, putEmpleado } from '../controllers/EmpleadoController';
 
 import { validateRequest } from '../helpers/validateRequest';
 import { PersonaValidation, UsuarioValidation } from '../helpers/validations';
@@ -60,7 +60,7 @@ router.put('/api/empleado/:id',
     putEmpleado
 );
 
-router.delete('/api/departamento',
+router.delete('/api/empleado/:id',
     isAuthUser,
     [
         param('id')
@@ -73,7 +73,20 @@ router.delete('/api/departamento',
     deleteEmpleado
 );
 
-router.post('/api/departamento/asignarDepartamento/:id',
+router.patch('/api/empleado/:id',
+    isAuthUser,
+    [
+        param('id')
+            .notEmpty()
+            .isNumeric()
+            .withMessage("El parámetro id es requerido")
+    ],
+    validateRequest,
+    policyEmpleado,
+    patchEnableEmpleado
+);
+
+/*router.post('/api/departamento/asignarDepartamento/:id',
     isAuthUser,
     [
         param('id')
@@ -84,6 +97,6 @@ router.post('/api/departamento/asignarDepartamento/:id',
     validateRequest,
     policyEmpleado,
     postAsignarDepartamento
-);
+);*/
 
 export { router as empleadoRoute }

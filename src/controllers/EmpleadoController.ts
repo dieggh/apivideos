@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { Transaction } from "sequelize/types";
 import { Administrador } from "../models/Administrador";
 import { Capitulo } from "../models/Capitulo";
 import { Categoria } from "../models/Categoria";
@@ -253,13 +254,16 @@ const putEmpleado = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const { nivelAcceso, idKind } = req.currentUser!;
-        const { empleado: { numExt, numInt, calle, ciudad, cp, colonia, noInterno, idEstado },
+        const { numExt, numInt, calle, ciudad, cp, colonia, noInterno, idEstado, idDepartamento,
             persona: { segundoAp, telefono }, usuario: { password, email } } = req.body;
 
         const empleado = await Empleado.findByPk(nivelAcceso === 2 ? idKind : id, { transaction: t });
 
         if (empleado) {
-
+            const userUpdated = {
+                id: 0,
+                email: email             
+            };
             if (password || email) {
 
                 const user = await empleado.getUsuario({
@@ -278,7 +282,7 @@ const putEmpleado = async (req: Request, res: Response) => {
                     });
                 }
 
-                if (email) {
+                if (email && user.email !== email) {
                     if (!(/.+@.+..+/).test(email)) {
                         await t.rollback();
                         return res.status(400).json({
@@ -295,6 +299,7 @@ const putEmpleado = async (req: Request, res: Response) => {
                     if (!inUse) {
                         user.email = email;
                         await user.save({ transaction: t });
+                       
                     } else {
                         await t.rollback();
                         return res.status(400).json({
@@ -302,7 +307,10 @@ const putEmpleado = async (req: Request, res: Response) => {
                             message: "El Correo Electrónico ya está en Uso"
                         });
                     }
+                    
                 }
+                userUpdated.email = user.email;
+                userUpdated.id = user.id;
             }
 
             empleado.numExt = numExt;
@@ -328,11 +336,36 @@ const putEmpleado = async (req: Request, res: Response) => {
             persona.ip = req.ip;
 
             await persona.save({ transaction: t });
+            
+            const departamento = await Departamento.findByPk(idDepartamento);
+            
+            if(departamento){
+                await postAsignarDepartamento(parseInt(id), req.ip, departamento, t);
+            }else{
+                await t.rollback();
+                return res.status(404).json({status: false, message: "Departamento no Existe"});
+            }
 
             await t.commit();
 
             res.status(200).json({
-                status: true
+                status: true,
+                empleado: {
+                    ...empleado.get( {plain: true} ),        
+                    Departamento: [
+                        {
+                            id: departamento.id,
+                            nombre: departamento.nombre
+                        }
+                    ],
+                    persona:{
+                        ...persona.get( {plain: true} )
+                    },
+                    usuario:{
+                        ...userUpdated,
+                        password: null
+                    }
+                }
             });
         }
 
@@ -369,51 +402,34 @@ const deleteEmpleado = async (req: Request, res: Response) => {
     }
 }
 
-const postAsignarDepartamento = async (req: Request, res: Response) => {
+const postAsignarDepartamento = async (id: number, ip: string, departamento: Departamento, t: Transaction) => {
     try {
 
-        const { id } = req.params;
-        const { idDepartamento } = req.body;
-
-        const empleado = await Empleado.findByPk(idDepartamento);
-        const departamento = await Departamento.findByPk(id, { attributes: ['id'] });
-
-        if (empleado && departamento) {
-            //verificamos si existen asignaciones activas
-            const asignaciones = await Departamento_Empleado.findAll({
-                where: {
-                    idEmpleado: id,
-                    estatus: '1'
-                }
-            });
-            //si existen las iteramos y las marcamos con estatus 2 finalizadas
-            for (let asignacion of asignaciones) {
-                asignacion.estatus = '2'
-                await asignacion.save();
+        //verificamos si existen asignaciones activas
+        const asignaciones = await Departamento_Empleado.findAll({
+            where: {
+                idEmpleado: id,
+                estatus: '1'
             }
-
-            await Departamento_Empleado.create({
-                idDepartamento: departamento.id,
-                idEmpleado: parseInt(id),
-                estatus: '1',
-                ip: req.ip
-            });
-
-            return res.status(200).json({
-                status: true
-            });
-        } else {
-            return res.status(404).json({
-                status: false,
-                message: "Departamento / Empleado no existe"
-            });
+        });
+        //si existen las iteramos y las marcamos con estatus 2 finalizadas
+        for (let asignacion of asignaciones) {
+            asignacion.estatus = '2'
+            await asignacion.save();
         }
 
+        await Departamento_Empleado.create({
+            idDepartamento: departamento.id,
+            idEmpleado: id,
+            estatus: '1',
+            ip: ip
+        }, {transaction: t});
+
+        return true;
+            
     } catch (error) {
         console.log(error)
-        return res.status(500).json({
-            status: false
-        });
+        throw error;
     }
 }
 
@@ -596,6 +612,34 @@ const getCapituloById = async (req: Request, res: Response) => {
     }
 }
 
+const patchEnableEmpleado = async (req: Request, res: Response) => {
+    
+    try {
+        const { id } = req.params;        
+
+        const empleado = await Empleado.findByPk(id);
+
+        if (empleado) {
+            empleado.estatus = '1';
+            await empleado.save();                       
+            return res.status(200).json({
+                status: true                
+            });
+        }
+
+        res.status(400).json({
+            status: false,
+            message: "Empleado no existe"
+        })
+
+    } catch (error) {
+        
+        res.status(500).json({
+            status: false
+        });
+    }
+}
+
 
 export {
     postEmpleado,
@@ -609,5 +653,6 @@ export {
     postIniciarCapitulo,
     putFinalizarCapitulo,
     getCapituloById,
-    getEstados
+    getEstados,
+    patchEnableEmpleado
 }
