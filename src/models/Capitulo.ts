@@ -8,7 +8,7 @@ interface CapituloAttributes{
     descripcion: string | null;
     tipo: string;
     path: string;
-    duracion: string | null;
+    duracion: number | null;
     estatus: string;
     ip: string;
 }   
@@ -22,7 +22,7 @@ class Capitulo extends Model<CapituloAttributes, CapituloCreationAttributes>
     public descripcion!: string | null;
     public tipo!: string;
     public path!: string;    
-    public duracion!: string | null;    
+    public duracion!: number | null;    
     public estatus!: string;    
     public ip!: string;
 

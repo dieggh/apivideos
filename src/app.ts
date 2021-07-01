@@ -10,8 +10,8 @@ import { categoriaRouter } from './routes/categoria';
 import { capituloRouter } from './routes/capitulo';
 import { empleadoMobileRouter } from './routes/mobile';
 import { Empleado_Capitulo } from "./models/Empleado_Capitulo";
-import { verifyToken } from "./middlewares/isAuth";
-import { policyEmpleadoCapitulo } from "./middlewares/policyCapitulo";
+import { verifyToken, verifyTokenFiles } from "./middlewares/isAuth";
+import { policyEmpleadoCapitulo, policyFiles } from "./middlewares/policyCapitulo";
 import { validateRequest } from "./helpers/validateRequest";
 import { param } from "express-validator";
 import { Departamento_Empleado } from "./models/Departamento_Empleado";
@@ -24,15 +24,15 @@ const express = require('express');
 const app = express();
 app.use(express.json({ limit: '100mb' }));
 
-app.use('/files/:id',
-    verifyToken,
+app.use('/files/:token/:id',
+    verifyTokenFiles,
     [
         param('id')
             .notEmpty()
             .isNumeric().withMessage("id debe de ser entero")
     ],
     validateRequest,
-    policyEmpleadoCapitulo,
+    policyFiles,
     express.static(path.join(__dirname, '../dist/public'))
 );
 

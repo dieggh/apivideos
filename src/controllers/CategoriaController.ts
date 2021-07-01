@@ -10,18 +10,19 @@ const postCategoria = async (req: Request, res: Response) =>{
         const admin = await Administrador.findByPk(idKind, {attributes:["id", "estatus"]});
 
         if(admin && admin.estatus === '1'){
-            await admin.createCategoria({
+            const categoria = await admin.createCategoria({
                 nombre: nombre,
                 descripcion: descripcion,
                 ip: req.ip
             });
 
-            res.status(200).json({
-                status: true
+            return res.status(200).json({
+                status: true,
+                categoria: categoria
             });
 
         }else{
-            res.status(404).json({
+            return res.status(404).json({
                 status: false,
                 message: "Administrador no existe"
             });
@@ -39,19 +40,20 @@ const postCategoria = async (req: Request, res: Response) =>{
 const putCategoria = async (req: Request, res: Response) =>{
     try {        
        
-        const { nombre, descripcion } = req.body;
+        const { descripcion } = req.body;
         const { id } = req.params;
 
         const categoria = await Categoria.findByPk(id);
 
         if(categoria){
             
-            categoria.nombre = nombre;
+            //categoria.nombre = nombre;
             categoria.descripcion =  descripcion;
             await categoria.save();
             
             res.status(200).json({
-                status: true
+                status: true,
+                categoria: categoria
             });
 
         }else{
@@ -76,7 +78,7 @@ const getCategorias = async (req: Request, res: Response) =>{
         if(nivelAcceso === 0){
             const categorias = await Categoria.findAll();
 
-            res.status(200).json({
+            return res.status(200).json({
                 status: true,
                 categorias
             });
@@ -163,10 +165,39 @@ const deleteCategoria = async (req: Request, res: Response) =>{
     }
 }
 
+const pathEnableCategoria = async (req: Request, res: Response) =>{
+    try {        
+        const { id } = req.params;
+
+        const categoria = await Categoria.findByPk(id);
+
+        if(categoria){
+            categoria.estatus = '1';
+            await categoria.save();
+
+            res.status(200).json({
+                status: true
+            });
+
+        }else{
+            res.status(404).json({
+                status: false,
+                message: "Categoría no existe"
+            });
+        }
+        
+    } catch (error) {
+        res.status(500).json({
+            status: false
+        });   
+    }
+}
+
 export {
     postCategoria,
     getCategoriaById,
     getCategorias,
     putCategoria,
-    deleteCategoria
+    deleteCategoria,
+    pathEnableCategoria
 }

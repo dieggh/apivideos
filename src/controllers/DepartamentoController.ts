@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { Administrador } from "../models/Administrador";
+import { Categoria } from "../models/Categoria";
 import { Departamento } from "../models/Departamento";
 import { Departamento_Categoria } from "../models/Departamento_Categoria";
 
@@ -27,7 +28,8 @@ const postDepartamento = async (req: Request, res: Response) => {
             }
 
             return res.status(200).json({
-                status: true
+                status: true,
+                departamento
             })
         }
 
@@ -37,6 +39,7 @@ const postDepartamento = async (req: Request, res: Response) => {
         });
 
     } catch (error) {
+        console.log(error)
         res.status(500).json({
             status: false
         })
@@ -108,6 +111,42 @@ const getDepartamentoById = async (req: Request, res: Response) => {
     }
 }
 
+const getDepartamentoCategorias = async (req: Request, res: Response) =>{
+    try {
+        const { id } = req.params;
+        const categorias = await Categoria.findAll({
+            where:{              
+                estatus: '1'
+            },            
+            attributes: ["id", "nombre"],
+            include: {
+                model: Departamento,
+                attributes: ['id'],
+                where:{
+                    id: id
+                },
+                through:{
+                    attributes: [],
+                    where:{
+                        estatus: '1'
+                    }
+                }
+            }
+        });
+        
+        return res.status(200).json({
+            status: true,
+            categorias
+        });
+
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            status: false            
+        });
+    }
+}
+
 const putDepartamento = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
@@ -121,35 +160,38 @@ const putDepartamento = async (req: Request, res: Response) => {
             await departamento.save();
 
             if(categorias){           
-                                
-                for (const categoria of categorias) {
-                    const cat = await Departamento_Categoria.findOne({
-                        where:{
-                            idCategoria : categoria.id,
-                            idDepartamento: departamento.id
-                        }
-                    });
-
-                    if(categoria.estatus === '1'){
-                        if(!cat){
-                            await Departamento_Categoria.create({
-                                idDepartamento: departamento.id,
-                                idCategoria: categoria.id,                        
-                                ip: req.ip
-                            });
-                        }
-                    }else{                        
-                        if(cat){
-                            cat.estatus = '0';
-                            await cat.save();
-                        }
+                
+                const catDepar = await Departamento_Categoria.findAll({
+                    where: {
+                        idDepartamento: id
+                    }
+                })
+                
+                for (const categoria of catDepar) {
                     
+                    const exits = categorias.find((x : Categoria) => x.id === categoria.idCategoria);
+
+                    if(exits === undefined){
+                        categoria.estatus = '0';
+                        await categoria.save();
                     }
                 }
+
+                for(const categoria of categorias){
+                    const exits = catDepar.find((x : Departamento_Categoria) => x.idCategoria === categoria.id);
+                    if(exits === undefined){
+                        await Departamento_Categoria.create({
+                            idDepartamento: departamento.id,
+                            idCategoria: categoria.id,                        
+                            ip: req.ip
+                        });
+                    }
+                }                    
             }
 
             return res.status(200).json({
-                status: true
+                status: true,
+                departamento
             });
         }
 
@@ -193,4 +235,32 @@ const deleteDepartamento = async (req: Request, res: Response) => {
 }
 
 
-export { getDepartamento, postDepartamento, getDepartamentoById, putDepartamento, deleteDepartamento };
+const patchEnableDepartamento = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+
+        const departamento = await Departamento.findByPk(id);
+
+        if (departamento) {
+            departamento.estatus = '1';
+            await departamento.save();
+
+            return res.status(200).json({
+                status: true
+            });
+        }
+
+        return res.status(404).json({
+            status: false,
+            message: "Departamento no Existe"
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            status: false
+        });
+    }
+}
+
+
+export { getDepartamento, postDepartamento, getDepartamentoById, putDepartamento, deleteDepartamento, getDepartamentoCategorias, patchEnableDepartamento };

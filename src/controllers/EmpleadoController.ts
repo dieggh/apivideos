@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { Transaction } from "sequelize/types";
+import { buildURL } from "../helpers/buildURLFile";
 import { Administrador } from "../models/Administrador";
 import { Capitulo } from "../models/Capitulo";
 import { Categoria } from "../models/Categoria";
@@ -588,21 +589,28 @@ const putFinalizarCapitulo = async (req: Request, res: Response) => {
 
 const getCapituloById = async (req: Request, res: Response) => {
     try {
-
+        const { nivelAcceso, idKind } = req.currentUser!;
         const { id } = req.params;
 
         const cap = await Capitulo.findByPk(id);
-
+    
         cap!.path = `${process.env.SERVE_FILES!}/files/${id}/${cap!.path}`;
-
+        if(cap){
+            buildURL([cap], idKind, nivelAcceso );            
+            return res.status(200).json({
+                status: true,
+                url: cap.path
+            });
+        }else{
+            return res.status(404).json({
+                status: false,
+                message: "Capítulo no Existe"
+            });
+        }
+        
         /*enviar el archivo directamente res.status(200).sendFile( 'videos/1/cronometro4xd.mp4', {
             root: 'dist/public'
         });*/
-
-        return res.status(200).json({
-            status: true,
-            url: cap!.path
-        })
 
     } catch (error) {
         console.log(error)

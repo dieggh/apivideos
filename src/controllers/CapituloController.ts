@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Capitulo } from "../models/Capitulo";
 import { Categoria } from "../models/Categoria";
 import { saveFiles } from "../utils/base64";
+import { buildURL } from '../helpers/buildURLFile';
 
 const postCapitulo = async (req: Request, res: Response) => {
     try {
@@ -17,21 +18,22 @@ const postCapitulo = async (req: Request, res: Response) => {
             const cap = await categoria.createCapitulo({
                 nombre: nombre,
                 descripcion: descripcion,
-                tipo: tipo,
+                tipo: tipo === 1 ? 'video' : 'file',
                 path: 'somepath',
-                duracion: duracion,
+                duracion: duracion === '' ? null : duracion,
                 ip: req.ip
             });
 
             const directory = `${process.env.FILES_PATH!}/videos/${cap.id}`;
-            const path = await saveFiles(file.base64, file.fileName, file.ext, directory);
+            const path = await saveFiles(file.base64, file.fileName,  directory);
             if (path) {
                 cap.path = path;
                 await cap.save();
             }
 
             res.status(200).json({
-                status: true
+                status: true,
+                capitulo: cap
             });
 
         } else {
@@ -52,18 +54,26 @@ const postCapitulo = async (req: Request, res: Response) => {
 
 const putCapitulo = async (req: Request, res: Response) => {
     try {
-
+        const { nivelAcceso, idKind } = req.currentUser!;
         const { nombre, descripcion, tipo, duracion, idCategoria, file } = req.body;
         const { id } = req.params;
 
 
-        const cap = await Capitulo.findByPk(id);
+        const cap = await Capitulo.findByPk(id, {
+            include: { model: Categoria, as: 'categoria',  
+                attributes: {
+                    exclude: ["createdAt", "updatedAt", "ip"]
+                } 
+            }
+        });
 
         if (cap) {
 
             if (idCategoria) {
-                const categoria = await Categoria.findByPk(idCategoria);
+                const categoria = await Categoria.findByPk(idCategoria);                
                 if (categoria) {
+                    cap.categoria!.id = categoria?.id,
+                    cap.categoria!.nombre = categoria?.nombre;
                     await cap.setCategoria(categoria);
                     //console.log(cap2)
                 } else {
@@ -76,21 +86,24 @@ const putCapitulo = async (req: Request, res: Response) => {
 
             cap.nombre = nombre;
             cap.descripcion = descripcion;
-            cap.tipo = tipo;
+            cap.tipo = tipo === 1? 'video': 'file';
             cap.duracion = duracion;
             
-            if (file) {
+            if (file && file.base64 !== '') {
                 const directory =  `${process.env.FILES_PATH!}/videos/${cap.id}`;
-                const path = await saveFiles(file.base64, file.fileName, file.ext, directory, cap.path);
+                const path = await saveFiles(file.base64, file.fileName,  directory, cap.path);
                 if (path) {
                     cap.path = path;
                 }
             }
 
             await cap.save();
+            
+            buildURL([cap], idKind, nivelAcceso)
 
             res.status(200).json({
-                status: true
+                status: true,
+                capitulo: cap
             });
 
         } else {
@@ -101,8 +114,6 @@ const putCapitulo = async (req: Request, res: Response) => {
         }
 
     } catch (error) {
-        console.log(error);
-
         res.status(500).json({
             status: false
         });
@@ -122,6 +133,8 @@ const getCapitulos = async (req: Request, res: Response) => {
                     }
                 }
             });
+            
+            buildURL(capitulos, idKind, nivelAcceso);
 
             return res.status(200).json({
                 status: true,
@@ -136,6 +149,8 @@ const getCapitulos = async (req: Request, res: Response) => {
                     }
                 }
             });
+
+            buildURL(capitulos, idKind, nivelAcceso);
     
             res.status(200).json({
                 status: true,
@@ -214,10 +229,38 @@ const deleteCapitulo = async (req: Request, res: Response) => {
     }
 }
 
+const patchEnableCapitulo = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+
+        const capitulo = await Capitulo.findByPk(id);
+
+        if (capitulo) {
+            capitulo.estatus = '1';
+            await capitulo.save();
+
+            res.status(200).json({
+                status: true
+            });
+
+        } else {
+            res.status(404).json({
+                status: false,
+                message: "Capítulo no existe"
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            status: false
+        });
+    }
+}
+
 export {
     postCapitulo,
     getCapitulos,
     getCapitulosById,
     putCapitulo,
-    deleteCapitulo
+    deleteCapitulo,
+    patchEnableCapitulo
 }

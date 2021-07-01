@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { body, param } from 'express-validator';
-import { deleteCapitulo, getCapitulos, getCapitulosById, postCapitulo, putCapitulo } from '../controllers/CapituloController';
+import { deleteCapitulo, getCapitulos, getCapitulosById, patchEnableCapitulo, postCapitulo, putCapitulo } from '../controllers/CapituloController';
 import { validateRequest } from '../helpers/validateRequest';
 import { CapituloValidation } from '../helpers/validations';
 import { isAuthUser } from '../middlewares/isAuth';
@@ -27,7 +27,7 @@ router.put('/api/capitulo/:id',
         param('id')
             .notEmpty()
             .isNumeric()
-            .withMessage("El parámetro id es requerido y debe ser entero")        
+            .withMessage("El parámetro id es requerido y debe ser entero")
     ],
     validateRequest,
     policyCapitulo,
@@ -64,6 +64,20 @@ router.delete('/api/capitulo/:id',
     validateRequest,
     policyCapitulo,
     deleteCapitulo
+);
+
+
+router.patch('/api/capitulo/:id',
+    isAuthUser,
+    [
+        param('id')
+            .notEmpty()
+            .isNumeric()
+            .withMessage("El parámetro id es requerido y debe ser entero"),
+    ],
+    validateRequest,
+    policyCapitulo,
+    patchEnableCapitulo
 );
 
 export {

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { body, param } from 'express-validator';
-import { deleteCategoria, getCategoriaById, getCategorias, postCategoria, putCategoria } from '../controllers/CategoriaController';
+import { deleteCategoria, getCategoriaById, getCategorias, pathEnableCategoria, postCategoria, putCategoria } from '../controllers/CategoriaController';
 import { validateRequest } from '../helpers/validateRequest';
 import { isAuthUser } from '../middlewares/isAuth';
 import { policyCategoria } from '../middlewares/policyCategoria';
@@ -64,6 +64,19 @@ router.delete('/api/categoria/:id',
     validateRequest,
     policyCategoria,
     deleteCategoria
+);
+
+router.patch('/api/categoria/:id',
+    isAuthUser,
+    [
+        param('id')
+            .notEmpty()
+            .isNumeric()
+            .withMessage("El parámetro id es requerido y debe ser entero"),
+    ],
+    validateRequest,
+    policyCategoria,
+    pathEnableCategoria
 );
 
 export {

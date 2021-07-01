@@ -2,12 +2,12 @@
 
 import fs, { stat } from 'fs';
 
-const saveFiles = async (base64File: string, fileName: string, ext: string, directory: string, previousFile: string | null = null): Promise<string>  => {
+const saveFiles = async (base64File: string, fileName: string, directory: string, previousFile: string | null = null): Promise<string>  => {
 
-    if(previousFile !== null){
-        fs.unlink(`${process.env.FILES_PATH!}/${previousFile}`, (error) =>{
+    if(previousFile !== null){        
+        fs.unlink(`${process.env.FILES_PATH!}/${previousFile.replace('dist/public', '')}`, (error) =>{
             console.log(error)
-        })
+        });
     }
   
     return new Promise<string>((resolve, reject) =>{
@@ -21,13 +21,13 @@ const saveFiles = async (base64File: string, fileName: string, ext: string, dire
                 
                 const bitmap = decodeBase64ToFile(base64File );
                 
-                fs.writeFile(`${directory}/${fileName}.${ext}` , bitmap, { encoding: 'base64' }, (err => {
+                fs.writeFile(`${directory}/${fileName}` , bitmap, { encoding: 'base64' }, (err => {
 
                     if(err){
                         reject(err);
                     }else{
                         
-                        resolve(`${directory}/${fileName}.${ext}`);
+                        resolve(`${directory}/${fileName}`);
                     }
             
                 }));
@@ -39,12 +39,12 @@ const saveFiles = async (base64File: string, fileName: string, ext: string, dire
 
                     const bitmap = decodeBase64ToFile(base64File);
 
-                    fs.writeFile(`${directory}/${fileName}.${ext}` , bitmap, { encoding: 'base64' }, (err => {
+                    fs.writeFile(`${directory}/${fileName}` , bitmap, { encoding: 'base64' }, (err => {
 
                         if(err){
                             throw err;
                         }else{
-                            resolve(`${directory}/${fileName}.${ext}`);
+                            resolve(`${directory}/${fileName}`);
                         }
                 
                     }));

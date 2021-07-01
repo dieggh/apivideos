@@ -10,10 +10,16 @@ interface UserPayload {
     idKind: number;
 }
 
+interface FilesPayload {
+    nivelAcceso: number,        
+    idKind: number;
+}
+
 declare global {
     namespace Express {
         interface Request {
             currentUser?: UserPayload;
+            filesToken?: FilesPayload
         }
     }
 }
@@ -110,14 +116,32 @@ const verifyToken = (req: Request, res: Response, next: NextFunction) => {
         }                                        
     } catch (error) {
         res.status(401).json({
-            message: error,
+            message: error.message,
             status: false
         })
+    }
+}
+
+const verifyTokenFiles = (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { token } = req.params;
+        const payload = jwt.verify(token, config.KEY_FILES) as FilesPayload;
+ 
+        if(payload){
+            req.filesToken = payload;
+            next();
+        }                                        
+    } catch (error) {
+        res.status(401).json({
+            message: error.message,
+            status: false
+        });
     }
 }
 export {
     isAuthAdmin,
     isAuthUser,
     isAuthEmployer,
-    verifyToken
+    verifyToken,
+    verifyTokenFiles
 };

@@ -59,11 +59,11 @@ const policyEmpleadoCapitulo = async(req: Request, res: Response, next: NextFunc
     try {
         const { idKind, nivelAcceso } = req.currentUser!;
         const { idCapitulo } = req.body;
-        const { id } = req.params;
-        console.log(req.path)
-        /*if(nivelAcceso === 0 && req.path.includes('videos')){
+        const { id } = req.params;        
+        
+        if(nivelAcceso === 0 && req.path.includes('videos')){
             return next();
-        }*/
+        }
 
         const hasRight = await Capitulo.findOne({
             attributes: ["id"],
@@ -88,7 +88,7 @@ const policyEmpleadoCapitulo = async(req: Request, res: Response, next: NextFunc
                                         attributes: ["idDepartamento", "idEmpleado"]
                                     },
                                     where:{
-                                        id: 2
+                                        id: idKind
                                     },
                                     attributes: ["id"]
                                 }
@@ -127,7 +127,57 @@ const policyEmpleadoCapitulo = async(req: Request, res: Response, next: NextFunc
     }
 }
 
+const policyFiles = async(req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { idKind, nivelAcceso } = req.filesToken!;
+        const { idCapitulo } = req.body;
+        const { id } = req.params;        
+        
+        if(nivelAcceso === 0){
+            return next();
+        }
+
+        const hasRight = await Capitulo.findOne({
+            attributes: ["id"],
+            where:{
+                id : idCapitulo ? idCapitulo : id
+            },
+            include:[
+                {
+                    model: Categoria, as: 'categoria',
+                    where:{
+                        idAdministrador: idKind
+                    }
+                }
+            ]
+        });
+
+        if(hasRight){
+            if(hasRight.categoria){
+               return next();             
+            }
+            
+            return res.status(403).json({
+                status: false,
+                message: "Acceso denegado"
+            });
+        }else{
+            res.status(403).json({
+                status: false,
+                message: "Acceso denegado"
+            });
+        }
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            status: false
+        });
+    }
+}
+
 export {
     policyCapitulo,
-    policyEmpleadoCapitulo
+    policyEmpleadoCapitulo,
+    policyFiles
 }
