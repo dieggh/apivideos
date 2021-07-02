@@ -35,5 +35,5 @@ Departamento_Empleado.init({
     tableName: "Departamento_Empleado",
     sequelize: database_1.sequelize
 });
-Empleado_1.Empleado.belongsToMany(Departamento_1.Departamento, { through: 'Departamento_Empleado', foreignKey: 'idDepartamento', as: 'Departamento' });
-Departamento_1.Departamento.belongsToMany(Empleado_1.Empleado, { through: 'Departamento_Empleado', foreignKey: 'idEmpleado', as: "Empleados" });
+Empleado_1.Empleado.belongsToMany(Departamento_1.Departamento, { through: { model: 'Departamento_Empleado', unique: false }, foreignKey: 'idEmpleado', as: 'Departamento' });
+Departamento_1.Departamento.belongsToMany(Empleado_1.Empleado, { through: { model: 'Departamento_Empleado', unique: false }, foreignKey: 'idDepartamento', as: "Empleados" });

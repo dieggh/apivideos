@@ -20,6 +20,7 @@ router.post('/api/empleado', isAuth_1.isAuthUser, new validations_1.PersonaValid
         .withMessage("Número Interno Requerido")
 ], validateRequest_1.validateRequest, EmpleadoController_1.postEmpleado);
 router.get('/api/empleado', isAuth_1.isAuthUser, EmpleadoController_1.getEmpleados);
+router.get('/api/estado', EmpleadoController_1.getEstados);
 router.get('/api/empleado/:id', isAuth_1.isAuthUser, [
     express_validator_1.param('id')
         .notEmpty()
@@ -32,15 +33,15 @@ router.put('/api/empleado/:id', isAuth_1.isAuthUser, new validations_1.PersonaVa
         .isNumeric()
         .withMessage("El parámetro id es requerido"),
 ], validateRequest_1.validateRequest, policyEmpleado_1.policyEmpleado, EmpleadoController_1.putEmpleado);
-router.delete('/api/departamento', isAuth_1.isAuthUser, [
+router.delete('/api/empleado/:id', isAuth_1.isAuthUser, [
     express_validator_1.param('id')
         .notEmpty()
         .isNumeric()
         .withMessage("El parámetro id es requerido")
 ], validateRequest_1.validateRequest, policyEmpleado_1.policyEmpleado, EmpleadoController_1.deleteEmpleado);
-router.post('/api/departamento/asignarDepartamento/:id', isAuth_1.isAuthUser, [
+router.patch('/api/empleado/:id', isAuth_1.isAuthUser, [
     express_validator_1.param('id')
         .notEmpty()
         .isNumeric()
         .withMessage("El parámetro id es requerido")
-], validateRequest_1.validateRequest, policyEmpleado_1.policyEmpleado, EmpleadoController_1.postAsignarDepartamento);
+], validateRequest_1.validateRequest, policyEmpleado_1.policyEmpleado, EmpleadoController_1.patchEnableEmpleado);

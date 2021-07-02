@@ -24,7 +24,7 @@ const policyAdmin = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                 next();
             }
             else {
-                res.status(401).json({
+                res.status(403).json({
                     status: false,
                     message: "Acceso Denegado"
                 });
@@ -33,7 +33,7 @@ const policyAdmin = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         else {
             res.status(404).json({
                 status: false,
-                message: "Administrador no existe"
+                message: "Administrador no existe s"
             });
         }
     }

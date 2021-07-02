@@ -18,7 +18,7 @@ const policyCategoria = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
         const admin = yield Administrador_1.Administrador.findByPk(idKind, { attributes: ["id", "estatus"] });
         if (admin) {
             if (admin.estatus !== '1') {
-                return res.status(401).json({
+                return res.status(403).json({
                     status: false,
                     message: "Acceso denegado"
                 });
@@ -35,7 +35,7 @@ const policyCategoria = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                 next();
             }
             else {
-                res.status(401).json({
+                res.status(403).json({
                     status: false,
                     message: "Acceso no Autorizado"
                 });

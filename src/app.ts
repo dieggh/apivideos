@@ -34,10 +34,10 @@ app.use('/files/:token/:id',
     ],
     validateRequest,
     policyFiles,
-    express.static(path.join(__dirname, '../dist/public'))
+    express.static(path.join(__dirname, 'public'))
 );
 
-app.use(express.static(path.join(__dirname, '../dist/public/sistema')));
+app.use(express.static(path.join(__dirname, 'public/sistema')));
 
 const sync = async () => {
 
@@ -91,7 +91,7 @@ app.use(cors(), empleadoMobileRouter);
 
 app.get('/*', function (req: Request, res: Response) {
     
-    res.sendFile(path.join(__dirname, '../dist/public/sistema/index.html'), function (err) {
+    res.sendFile(path.join(__dirname, 'public/sistema/index.html'), function (err) {
         if (err) {
             res.status(500).send(err)
         }

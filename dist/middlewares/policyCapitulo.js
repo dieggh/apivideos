@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.policyEmpleadoCapitulo = exports.policyCapitulo = void 0;
+exports.policyFiles = exports.policyEmpleadoCapitulo = exports.policyCapitulo = void 0;
 const Administrador_1 = require("../models/Administrador");
 const Capitulo_1 = require("../models/Capitulo");
 const Categoria_1 = require("../models/Categoria");
@@ -22,7 +22,7 @@ const policyCapitulo = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         const admin = yield Administrador_1.Administrador.findByPk(idKind, { attributes: ["id", "estatus"] });
         if (admin) {
             if (admin.estatus !== '1') {
-                return res.status(401).json({
+                return res.status(403).json({
                     status: false,
                     message: "Acceso denegado"
                 });
@@ -42,7 +42,7 @@ const policyCapitulo = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                 next();
             }
             else {
-                res.status(401).json({
+                res.status(403).json({
                     status: false,
                     message: "Acceso no Autorizado"
                 });
@@ -65,26 +65,38 @@ exports.policyCapitulo = policyCapitulo;
 const policyEmpleadoCapitulo = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {
-        const { idKind } = req.currentUser;
+        const { idKind, nivelAcceso } = req.currentUser;
         const { idCapitulo } = req.body;
         const { id } = req.params;
-        console.log(id);
+        if (nivelAcceso === 0 && req.path.includes('videos')) {
+            return next();
+        }
         const hasRight = yield Capitulo_1.Capitulo.findOne({
+            attributes: ["id"],
             where: {
                 id: idCapitulo ? idCapitulo : id
             },
             include: [
                 {
                     model: Categoria_1.Categoria, as: 'categoria',
+                    attributes: ["id"],
                     include: [
                         {
                             model: Departamento_1.Departamento,
+                            attributes: ["id"],
+                            through: {
+                                attributes: ["idDepartamento", "idCategoria"]
+                            },
                             include: [
                                 {
                                     model: Empleado_1.Empleado, as: 'Empleados',
+                                    through: {
+                                        attributes: ["idDepartamento", "idEmpleado"]
+                                    },
                                     where: {
                                         id: idKind
-                                    }
+                                    },
+                                    attributes: ["id"]
                                 }
                             ]
                         }
@@ -100,13 +112,13 @@ const policyEmpleadoCapitulo = (req, res, next) => __awaiter(void 0, void 0, voi
                     }
                 }
             }
-            return res.status(401).json({
+            return res.status(403).json({
                 status: false,
                 message: "Acceso denegado"
             });
         }
         else {
-            res.status(401).json({
+            res.status(403).json({
                 status: false,
                 message: "Acceso denegado"
             });
@@ -120,3 +132,49 @@ const policyEmpleadoCapitulo = (req, res, next) => __awaiter(void 0, void 0, voi
     }
 });
 exports.policyEmpleadoCapitulo = policyEmpleadoCapitulo;
+const policyFiles = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { idKind, nivelAcceso } = req.filesToken;
+        const { idCapitulo } = req.body;
+        const { id } = req.params;
+        if (nivelAcceso === 0) {
+            return next();
+        }
+        const hasRight = yield Capitulo_1.Capitulo.findOne({
+            attributes: ["id"],
+            where: {
+                id: idCapitulo ? idCapitulo : id
+            },
+            include: [
+                {
+                    model: Categoria_1.Categoria, as: 'categoria',
+                    where: {
+                        idAdministrador: idKind
+                    }
+                }
+            ]
+        });
+        if (hasRight) {
+            if (hasRight.categoria) {
+                return next();
+            }
+            return res.status(403).json({
+                status: false,
+                message: "Acceso denegado"
+            });
+        }
+        else {
+            res.status(403).json({
+                status: false,
+                message: "Acceso denegado"
+            });
+        }
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).json({
+            status: false
+        });
+    }
+});
+exports.policyFiles = policyFiles;

@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "ts-node-dev src/app.ts",
-    "start-js": "node dist/app.js"
+    "start-js": "nodemon dist/app.js"
   },
   "repository": {
     "type": "git",
@@ -28,6 +28,7 @@
     "jsonwebtoken": "^8.5.1",
     "mysql2": "^2.2.5",
     "node-fetch": "^2.6.1",
+    "nodemon": "^2.0.9",
     "sequelize": "^6.6.2"
   },
   "devDependencies": {

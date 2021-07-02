@@ -17,8 +17,8 @@ const policyEmpleado = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     try {
         const { id } = req.params;
         const { idKind, nivelAcceso } = req.currentUser;
-        const emp = yield Empleado_1.Empleado.findByPk(id, {
-            attributes: ["idAdministrador"],
+        const emp = yield Empleado_1.Empleado.findByPk(id ? id : idKind, {
+            attributes: ["idAdministrador", "id"],
             include: {
                 model: Administrador_1.Administrador, as: 'administrador',
                 attributes: ["id", "estatus"]
@@ -26,7 +26,7 @@ const policyEmpleado = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         });
         if (emp) {
             if (((_a = emp.administrador) === null || _a === void 0 ? void 0 : _a.estatus) === '0') {
-                return res.status(401).json({
+                return res.status(403).json({
                     status: false,
                     message: "Acceso Denegado"
                 });
@@ -34,11 +34,13 @@ const policyEmpleado = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             if (nivelAcceso === 0) {
                 return next();
             }
-            if (emp.idAdministrador === idKind) {
+            console.log(idKind);
+            console.log(emp.id);
+            if (emp.idAdministrador === idKind || emp.id === idKind) {
                 next();
             }
             else {
-                res.status(401).json({
+                res.status(403).json({
                     status: false,
                     message: "Acceso no Autorizado"
                 });

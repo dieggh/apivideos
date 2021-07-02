@@ -27,9 +27,33 @@ router.put('/api/departamento/:id', isAuth_1.isAuthUser, new validations_1.Depar
         .isNumeric()
         .withMessage("El parámetro id es requerido")
 ], validateRequest_1.validateRequest, policyDepartamento_1.policyDepartamento, DepartamentoController_1.putDepartamento);
-router.delete('/api/departamento', isAuth_1.isAuthUser, [
+router.delete('/api/departamento/:id', isAuth_1.isAuthUser, [
     express_validator_1.param('id')
         .notEmpty()
         .isNumeric()
         .withMessage("El parámetro id es requerido")
 ], validateRequest_1.validateRequest, policyDepartamento_1.policyDepartamento, DepartamentoController_1.deleteDepartamento);
+router.patch('/api/departamento/:id', isAuth_1.isAuthUser, [
+    express_validator_1.param('id')
+        .notEmpty()
+        .isNumeric()
+        .withMessage("El parámetro id es requerido")
+], validateRequest_1.validateRequest, policyDepartamento_1.policyDepartamento, DepartamentoController_1.patchEnableDepartamento);
+router.get('/api/departamento/:id/categorias', isAuth_1.isAuthUser, [
+    express_validator_1.param('id')
+        .notEmpty()
+        .isNumeric()
+        .withMessage("El parámetro id es requerido")
+], validateRequest_1.validateRequest, policyDepartamento_1.policyDepartamento, DepartamentoController_1.getDepartamentoCategorias);
+router.get('/api/departamento/:id/empleados', isAuth_1.isAuthUser, [
+    express_validator_1.param('id')
+        .notEmpty()
+        .isNumeric()
+        .withMessage("El parámetro id es requerido")
+], validateRequest_1.validateRequest, policyDepartamento_1.policyDepartamento, DepartamentoController_1.getDepartamentoEmpleados);
+router.delete('/api/departamento/:id/empleados', isAuth_1.isAuthUser, [
+    express_validator_1.param('id')
+        .notEmpty()
+        .isNumeric()
+        .withMessage("El parámetro id es requerido")
+], validateRequest_1.validateRequest, policyDepartamento_1.policyDepartamento, DepartamentoController_1.deleteDepartamentoEmpleadoAsignacion);

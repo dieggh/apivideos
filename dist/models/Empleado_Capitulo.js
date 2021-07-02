@@ -42,5 +42,5 @@ Empleado_Capitulo.init({
     tableName: 'Empleado_Capitulo',
     sequelize: database_1.sequelize
 });
-Empleado_1.Empleado.belongsToMany(Capitulo_1.Capitulo, { through: 'Empleado_Capitulo', foreignKey: 'idCapitulo' });
-Capitulo_1.Capitulo.belongsToMany(Empleado_1.Empleado, { through: 'Empleado_Capitulo', foreignKey: 'idEmpleado' });
+Empleado_1.Empleado.belongsToMany(Capitulo_1.Capitulo, { through: 'Empleado_Capitulo', foreignKey: 'idEmpleado' });
+Capitulo_1.Capitulo.belongsToMany(Empleado_1.Empleado, { through: 'Empleado_Capitulo', foreignKey: 'idCapitulo' });

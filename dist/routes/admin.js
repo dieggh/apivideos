@@ -26,3 +26,14 @@ router.get('/api/admin/:id', isAuth_1.isAuthUser, [
         .isNumeric()
         .withMessage("El parámetro id es requerido y debe ser entero")
 ], policyAdministrador_1.policyAdmin, AdminContoller_1.getAdministradorById);
+router.delete('/api/admin/:id', isAuth_1.isAuthAdmin, [
+    express_validator_1.param('id')
+        .notEmpty().withMessage("El parámetro id es requerido")
+        .isNumeric().withMessage("El parámetro id debe ser entero")
+], policyAdministrador_1.policyAdmin, AdminContoller_1.deleteAdministrador);
+router.patch('/api/admin/:id', isAuth_1.isAuthAdmin, [
+    express_validator_1.param('id')
+        .notEmpty().withMessage("El parámetro id es requerido")
+        .isNumeric().withMessage("El parámetro id debe ser entero")
+], policyAdministrador_1.policyAdmin, AdminContoller_1.patchEnableAdministrador);
+router.get('/api/adminPerfil', isAuth_1.isAuthUser, AdminContoller_1.getAdministradorPerfil);

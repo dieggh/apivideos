@@ -25,7 +25,7 @@ Persona.init({
         allowNull: true,
     },
     telefono: {
-        type: sequelize_1.DataTypes.STRING(10),
+        type: sequelize_1.DataTypes.STRING(20),
         allowNull: true
     },
     ip: {

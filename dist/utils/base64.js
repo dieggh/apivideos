@@ -14,9 +14,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.saveFiles = void 0;
 const fs_1 = __importDefault(require("fs"));
-const saveFiles = (base64File, fileName, ext, directory, previousFile = null) => __awaiter(void 0, void 0, void 0, function* () {
+const saveFiles = (base64File, fileName, directory, previousFile = null) => __awaiter(void 0, void 0, void 0, function* () {
     if (previousFile !== null) {
-        fs_1.default.unlink(`${process.env.FILES_PATH}/${previousFile}`, (error) => {
+        fs_1.default.unlink(`${process.env.FILES_PATH}/${previousFile.replace('dist/public', '')}`, (error) => {
             console.log(error);
         });
     }
@@ -27,12 +27,12 @@ const saveFiles = (base64File, fileName, ext, directory, previousFile = null) =>
             }
             if (stats) {
                 const bitmap = decodeBase64ToFile(base64File);
-                fs_1.default.writeFile(`${directory}/${fileName}.${ext}`, bitmap, { encoding: 'base64' }, (err => {
+                fs_1.default.writeFile(`${directory}/${fileName}`, bitmap, { encoding: 'base64' }, (err => {
                     if (err) {
                         reject(err);
                     }
                     else {
-                        resolve(`${directory}/${fileName}.${ext}`);
+                        resolve(`${directory}/${fileName}`);
                     }
                 }));
             }
@@ -42,12 +42,12 @@ const saveFiles = (base64File, fileName, ext, directory, previousFile = null) =>
                         reject(err);
                     }
                     const bitmap = decodeBase64ToFile(base64File);
-                    fs_1.default.writeFile(`${directory}/${fileName}.${ext}`, bitmap, { encoding: 'base64' }, (err => {
+                    fs_1.default.writeFile(`${directory}/${fileName}`, bitmap, { encoding: 'base64' }, (err => {
                         if (err) {
                             throw err;
                         }
                         else {
-                            resolve(`${directory}/${fileName}.${ext}`);
+                            resolve(`${directory}/${fileName}`);
                         }
                     }));
                 });

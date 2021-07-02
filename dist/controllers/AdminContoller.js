@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteAdministrador = exports.getAdministradorById = exports.getAdministradores = exports.putAdministrador = void 0;
+exports.getAdministradorPerfil = exports.patchEnableAdministrador = exports.deleteAdministrador = exports.getAdministradorById = exports.getAdministradores = exports.putAdministrador = void 0;
 const Administrador_1 = require("../models/Administrador");
 const Persona_1 = require("../models/Persona");
 const Usuario_1 = require("../models/Usuario");
@@ -19,13 +19,17 @@ const putAdministrador = (req, res) => __awaiter(void 0, void 0, void 0, functio
     const t = yield database_1.sequelize.transaction();
     try {
         const { id } = req.params;
-        const { noInterno, telefono, password, email } = req.body;
+        const { noInterno, persona: { telefono, segundoAp }, usuario: { password, email } } = req.body;
         const admin = yield Administrador_1.Administrador.findByPk(id, { transaction: t });
         if (admin) {
             admin.noInterno = noInterno;
+            const userUpdated = {
+                id: 0,
+                email: email
+            };
             if (password || email) {
                 const user = yield admin.getUsuario();
-                if (password && password.trim().length > 7) {
+                if (password && password.trim().length > 5) {
                     user.password = yield password_1.Password.toHash(password);
                     user.token = null;
                 }
@@ -36,7 +40,7 @@ const putAdministrador = (req, res) => __awaiter(void 0, void 0, void 0, functio
                         message: "La contraseña debe de tener al menos 8 carácteres"
                     });
                 }
-                if (email) {
+                if (email && (email !== user.email)) {
                     if (!(/.+@.+..+/).test(email)) {
                         yield t.rollback();
                         return res.status(400).json({
@@ -61,9 +65,12 @@ const putAdministrador = (req, res) => __awaiter(void 0, void 0, void 0, functio
                     }
                 }
                 yield user.save({ transaction: t });
+                userUpdated.email = user.email;
+                userUpdated.id = user.id;
             }
             const persona = yield admin.getPersona({ transaction: t });
             persona.telefono = telefono;
+            persona.segundoAp = segundoAp;
             yield admin.save({ transaction: t });
             yield persona.save({ transaction: t });
             yield t.commit();
@@ -84,6 +91,29 @@ const putAdministrador = (req, res) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.putAdministrador = putAdministrador;
+const patchEnableAdministrador = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        const admin = yield Administrador_1.Administrador.findByPk(id);
+        if (admin) {
+            admin.estatus = '1';
+            yield admin.save();
+            return res.status(200).json({
+                status: true
+            });
+        }
+        res.status(400).json({
+            status: false,
+            message: "Administrador no existe"
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            status: false
+        });
+    }
+});
+exports.patchEnableAdministrador = patchEnableAdministrador;
 const getAdministradores = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { nivelAcceso } = req.currentUser;
@@ -101,10 +131,12 @@ const getAdministradores = (req, res) => __awaiter(void 0, void 0, void 0, funct
                     }
                 ]
             });
-            res.status(200).json({
-                status: true,
-                administradores: admin
-            });
+            setTimeout(() => {
+                res.status(200).json({
+                    status: true,
+                    administradores: admin
+                });
+            }, 2000);
         }
         else {
             res.status(403).json({
@@ -172,7 +204,7 @@ const deleteAdministrador = (req, res) => __awaiter(void 0, void 0, void 0, func
             });
         }
         else {
-            res.status(401).json({
+            res.status(403).json({
                 status: true
             });
         }
@@ -184,3 +216,49 @@ const deleteAdministrador = (req, res) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.deleteAdministrador = deleteAdministrador;
+const getAdministradorPerfil = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { idKind } = req.currentUser;
+        const admin = yield Administrador_1.Administrador.findByPk(idKind, {
+            include: [
+                {
+                    model: Persona_1.Persona, as: 'persona',
+                    attributes: {
+                        exclude: ["createdAt", "updatedAt", "ip"]
+                    }
+                },
+                {
+                    model: Usuario_1.Usuario, as: 'usuario',
+                    attributes: {
+                        exclude: ["password", "token"]
+                    }
+                }
+            ]
+        });
+        if (admin) {
+            if (admin.estatus === '0') {
+                admin.usuario.token = null;
+                yield admin.save();
+                return res.status(401).json({
+                    status: false
+                });
+            }
+            return res.status(200).json({
+                status: true,
+                administrador: admin
+            });
+        }
+        else {
+            return res.status(404).json({
+                status: false,
+                message: "Administrador no existe"
+            });
+        }
+    }
+    catch (error) {
+        res.status(500).json({
+            status: false
+        });
+    }
+});
+exports.getAdministradorPerfil = getAdministradorPerfil;

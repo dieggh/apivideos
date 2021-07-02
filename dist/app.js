@@ -23,19 +23,20 @@ const admin_1 = require("./routes/admin");
 const categoria_1 = require("./routes/categoria");
 const capitulo_1 = require("./routes/capitulo");
 const mobile_1 = require("./routes/mobile");
-const Empleado_Capitulo_1 = require("./models/Empleado_Capitulo");
 const isAuth_1 = require("./middlewares/isAuth");
 const policyCapitulo_1 = require("./middlewares/policyCapitulo");
 const validateRequest_1 = require("./helpers/validateRequest");
 const express_validator_1 = require("express-validator");
+const Departamento_Empleado_1 = require("./models/Departamento_Empleado");
 const express = require('express');
 const app = express();
 app.use(express.json({ limit: '100mb' }));
-app.use('/files/:id', isAuth_1.isAuthEmployer, [
+app.use('/files/:token/:id', isAuth_1.verifyTokenFiles, [
     express_validator_1.param('id')
         .notEmpty()
         .isNumeric().withMessage("id debe de ser entero")
-], validateRequest_1.validateRequest, policyCapitulo_1.policyEmpleadoCapitulo, express.static(path_1.default.join(__dirname, '../dist/public')));
+], validateRequest_1.validateRequest, policyCapitulo_1.policyFiles, express.static(path_1.default.join(__dirname, 'public')));
+app.use(express.static(path_1.default.join(__dirname, 'public/sistema')));
 const sync = () => __awaiter(void 0, void 0, void 0, function* () {
     /*await Persona.sync({
         force: true
@@ -63,7 +64,7 @@ const sync = () => __awaiter(void 0, void 0, void 0, function* () {
     }).catch(error => {
         error
     })*/
-    yield Empleado_Capitulo_1.Empleado_Capitulo.sync({ force: true }).catch(error => {
+    yield Departamento_Empleado_1.Departamento_Empleado.sync({ force: true }).catch(error => {
         console.log(error);
     });
 });
@@ -73,6 +74,7 @@ const sync = () => __awaiter(void 0, void 0, void 0, function* () {
     console.log(eerror)
 });*/
 //sync();
+app.use(cors_1.default());
 app.use(auth_1.authRoute);
 app.use(departamento_1.departamentoRoute);
 app.use(empleado_1.empleadoRoute);
@@ -80,6 +82,13 @@ app.use(admin_1.adminRouter);
 app.use(categoria_1.categoriaRouter);
 app.use(capitulo_1.capituloRouter);
 app.use(cors_1.default(), mobile_1.empleadoMobileRouter);
+app.get('/*', function (req, res) {
+    res.sendFile(path_1.default.join(__dirname, 'public/sistema/index.html'), function (err) {
+        if (err) {
+            res.status(500).send(err);
+        }
+    });
+});
 //sequelize.sync().then(onfulfilled =>{
 app.listen(4001);
 console.log("corriendo puerto 4001");

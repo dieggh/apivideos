@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isAuthEmployer = exports.isAuthUser = exports.isAuthAdmin = void 0;
+exports.verifyTokenFiles = exports.verifyToken = exports.isAuthEmployer = exports.isAuthUser = exports.isAuthAdmin = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const config_1 = require("../config/config");
 const isAuthAdmin = (req, res, next) => {
@@ -14,16 +14,15 @@ const isAuthAdmin = (req, res, next) => {
             next();
         }
         else {
-            res.status(401).json({
+            res.status(403).json({
                 message: "Permisos Insuficientes",
                 status: false
             });
         }
     }
     catch (error) {
-        console.log(error);
         res.status(401).json({
-            message: "Token no Proveído",
+            message: error.message,
             status: false
         });
     }
@@ -37,7 +36,7 @@ const isAuthUser = (req, res, next) => {
             next();
         }
         else {
-            return res.status(401).json({
+            return res.status(403).json({
                 message: "Permisos Insuficientes",
                 status: false
             });
@@ -45,7 +44,7 @@ const isAuthUser = (req, res, next) => {
     }
     catch (error) {
         res.status(401).json({
-            message: error,
+            message: error.message,
             status: false
         });
     }
@@ -59,7 +58,7 @@ const isAuthEmployer = (req, res, next) => {
             next();
         }
         else {
-            res.status(401).json({
+            res.status(403).json({
                 message: "Permisos Insuficientes",
                 status: false
             });
@@ -82,11 +81,43 @@ const isAuth = (req, res) => {
             return payload;
         }
         else {
-            throw "Token no Proveído";
+            throw new Error("Token no Proveído");
         }
     }
     catch (error) {
-        console.log(error);
         throw error;
     }
 };
+const verifyToken = (req, res, next) => {
+    try {
+        const payload = isAuth(req, res);
+        if (payload) {
+            req.currentUser = payload;
+            next();
+        }
+    }
+    catch (error) {
+        res.status(401).json({
+            message: error.message,
+            status: false
+        });
+    }
+};
+exports.verifyToken = verifyToken;
+const verifyTokenFiles = (req, res, next) => {
+    try {
+        const { token } = req.params;
+        const payload = jsonwebtoken_1.default.verify(token, config_1.config.KEY_FILES);
+        if (payload) {
+            req.filesToken = payload;
+            next();
+        }
+    }
+    catch (error) {
+        res.status(401).json({
+            message: error.message,
+            status: false
+        });
+    }
+};
+exports.verifyTokenFiles = verifyTokenFiles;

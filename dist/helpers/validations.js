@@ -18,18 +18,19 @@ class PersonaValidation extends RequestValidation {
     constructor() {
         super(...arguments);
         this.validation = [
-            express_validator_1.body('nombre')
+            express_validator_1.body('persona.nombre')
                 .trim()
                 .notEmpty()
                 .withMessage("Nombre Requerido"),
-            express_validator_1.body('primerAp')
+            express_validator_1.body('persona.primerAp')
                 .trim()
                 .notEmpty()
                 .withMessage("Primer Apellido Requerido"),
-            express_validator_1.body('telefono')
+            express_validator_1.body('persona.telefono')
                 .isLength({
-                max: 10, min: 10
+                max: 15, min: 10
             })
+                .withMessage("Teléfono Inválido")
         ];
     }
 }
@@ -48,14 +49,14 @@ class UsuarioValidation extends RequestValidation {
     constructor() {
         super(...arguments);
         this.validation = [
-            express_validator_1.body("password")
+            express_validator_1.body("usuario.password")
                 .trim()
                 .isLength({
-                min: 8,
+                min: 6,
                 max: 16
             })
                 .withMessage("Contraseña Requerida"),
-            express_validator_1.body('email')
+            express_validator_1.body('usuario.email')
                 .isEmail()
                 .withMessage("El Correo Electrónico debe de ser válido")
                 .custom((value) => __awaiter(this, void 0, void 0, function* () {
@@ -88,15 +89,12 @@ class CapituloValidation extends RequestValidation {
             express_validator_1.body("tipo")
                 .notEmpty()
                 .withMessage("Tipo del recurso requerido"),
-            express_validator_1.body("file.base64")
-                .notEmpty()
-                .withMessage("file.base64 requerido"),
+            //body("file.base64")
+            //    .notEmpty()
+            //    .withMessage("file.base64 requerido"),
             express_validator_1.body("file.fileName")
                 .notEmpty()
                 .withMessage("file.fileName requerido"),
-            express_validator_1.body("file.ext")
-                .notEmpty()
-                .withMessage("file.ext requerido"),
             express_validator_1.body('idCategoria')
                 .notEmpty()
                 .isNumeric()

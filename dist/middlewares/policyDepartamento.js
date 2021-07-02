@@ -29,7 +29,7 @@ const policyDepartamento = (req, res, next) => __awaiter(void 0, void 0, void 0,
                 next();
             }
             else {
-                res.status(401).json({
+                res.status(403).json({
                     status: false,
                     message: "Acceso no Autorizado"
                 });

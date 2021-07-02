@@ -35,5 +35,5 @@ Departamento_Categoria.init({
     tableName: "Departamento_Categoria",
     sequelize: database_1.sequelize
 });
-Categoria_1.Categoria.belongsToMany(Departamento_1.Departamento, { through: 'Departamento_Categoria', foreignKey: 'idDepartamento' });
-Departamento_1.Departamento.belongsToMany(Categoria_1.Categoria, { through: 'Departamento_Categoria', foreignKey: 'idCategoria' });
+Categoria_1.Categoria.belongsToMany(Departamento_1.Departamento, { through: 'Departamento_Categoria', foreignKey: 'idCategoria' });
+Departamento_1.Departamento.belongsToMany(Categoria_1.Categoria, { through: 'Departamento_Categoria', foreignKey: 'idDepartamento' });

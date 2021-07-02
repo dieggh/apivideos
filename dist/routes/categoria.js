@@ -36,3 +36,9 @@ router.delete('/api/categoria/:id', isAuth_1.isAuthUser, [
         .isNumeric()
         .withMessage("El parámetro id es requerido y debe ser entero"),
 ], validateRequest_1.validateRequest, policyCategoria_1.policyCategoria, CategoriaController_1.deleteCategoria);
+router.patch('/api/categoria/:id', isAuth_1.isAuthUser, [
+    express_validator_1.param('id')
+        .notEmpty()
+        .isNumeric()
+        .withMessage("El parámetro id es requerido y debe ser entero"),
+], validateRequest_1.validateRequest, policyCategoria_1.policyCategoria, CategoriaController_1.pathEnableCategoria);

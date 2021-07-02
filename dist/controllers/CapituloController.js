@@ -9,13 +9,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteCapitulo = exports.putCapitulo = exports.getCapitulosById = exports.getCapitulos = exports.postCapitulo = void 0;
+exports.patchEnableCapitulo = exports.deleteCapitulo = exports.putCapitulo = exports.getCapitulosById = exports.getCapitulos = exports.postCapitulo = void 0;
 const Capitulo_1 = require("../models/Capitulo");
 const Categoria_1 = require("../models/Categoria");
 const base64_1 = require("../utils/base64");
+const buildURLFile_1 = require("../helpers/buildURLFile");
 const postCapitulo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { nombre, descripcion, tipo, duracion, idCategoria, file } = req.body;
+        const { idKind, nivelAcceso } = req.currentUser;
         const categoria = yield Categoria_1.Categoria.findByPk(idCategoria, {
             attributes: ["id"]
         });
@@ -23,19 +25,21 @@ const postCapitulo = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             const cap = yield categoria.createCapitulo({
                 nombre: nombre,
                 descripcion: descripcion,
-                tipo: tipo,
+                tipo: tipo === 1 ? 'video' : 'file',
                 path: 'somepath',
-                duracion: duracion,
+                duracion: duracion === '' ? null : duracion,
                 ip: req.ip
             });
             const directory = `${process.env.FILES_PATH}/videos/${cap.id}`;
-            const path = yield base64_1.saveFiles(file.base64, file.fileName, file.ext, directory);
+            const path = file.base64 ? yield base64_1.saveFiles(file.base64, file.fileName, directory) : `${directory}/${file.fileName}`;
             if (path) {
                 cap.path = path;
                 yield cap.save();
             }
+            buildURLFile_1.buildURL([cap], idKind, nivelAcceso);
             res.status(200).json({
-                status: true
+                status: true,
+                capitulo: cap
             });
         }
         else {
@@ -55,13 +59,22 @@ const postCapitulo = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 exports.postCapitulo = postCapitulo;
 const putCapitulo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        const { nivelAcceso, idKind } = req.currentUser;
         const { nombre, descripcion, tipo, duracion, idCategoria, file } = req.body;
         const { id } = req.params;
-        const cap = yield Capitulo_1.Capitulo.findByPk(id);
+        const cap = yield Capitulo_1.Capitulo.findByPk(id, {
+            include: { model: Categoria_1.Categoria, as: 'categoria',
+                attributes: {
+                    exclude: ["createdAt", "updatedAt", "ip"]
+                }
+            }
+        });
         if (cap) {
             if (idCategoria) {
                 const categoria = yield Categoria_1.Categoria.findByPk(idCategoria);
                 if (categoria) {
+                    cap.categoria.id = categoria === null || categoria === void 0 ? void 0 : categoria.id,
+                        cap.categoria.nombre = categoria === null || categoria === void 0 ? void 0 : categoria.nombre;
                     yield cap.setCategoria(categoria);
                     //console.log(cap2)
                 }
@@ -74,18 +87,20 @@ const putCapitulo = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             }
             cap.nombre = nombre;
             cap.descripcion = descripcion;
-            cap.tipo = tipo;
+            cap.tipo = tipo === 1 ? 'video' : 'file';
             cap.duracion = duracion;
-            if (file) {
+            if (file && file.base64 !== '') {
                 const directory = `${process.env.FILES_PATH}/videos/${cap.id}`;
-                const path = yield base64_1.saveFiles(file.base64, file.fileName, file.ext, directory, cap.path);
+                const path = yield base64_1.saveFiles(file.base64, file.fileName, directory, cap.path);
                 if (path) {
                     cap.path = path;
                 }
             }
             yield cap.save();
+            buildURLFile_1.buildURL([cap], idKind, nivelAcceso);
             res.status(200).json({
-                status: true
+                status: true,
+                capitulo: cap
             });
         }
         else {
@@ -96,7 +111,6 @@ const putCapitulo = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         }
     }
     catch (error) {
-        console.log(error);
         res.status(500).json({
             status: false
         });
@@ -115,6 +129,7 @@ const getCapitulos = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                     }
                 }
             });
+            buildURLFile_1.buildURL(capitulos, idKind, nivelAcceso);
             return res.status(200).json({
                 status: true,
                 capitulos
@@ -129,6 +144,7 @@ const getCapitulos = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                     }
                 }
             });
+            buildURLFile_1.buildURL(capitulos, idKind, nivelAcceso);
             res.status(200).json({
                 status: true,
                 capitulos
@@ -198,3 +214,28 @@ const deleteCapitulo = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.deleteCapitulo = deleteCapitulo;
+const patchEnableCapitulo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        const capitulo = yield Capitulo_1.Capitulo.findByPk(id);
+        if (capitulo) {
+            capitulo.estatus = '1';
+            yield capitulo.save();
+            res.status(200).json({
+                status: true
+            });
+        }
+        else {
+            res.status(404).json({
+                status: false,
+                message: "Capítulo no existe"
+            });
+        }
+    }
+    catch (error) {
+        res.status(500).json({
+            status: false
+        });
+    }
+});
+exports.patchEnableCapitulo = patchEnableCapitulo;

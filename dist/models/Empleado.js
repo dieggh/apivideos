@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Empleado = void 0;
 const sequelize_1 = require("sequelize");
 const database_1 = require("./../utils/database");
+const Estado_1 = require("./Estado");
 const Persona_1 = require("./Persona");
 const Usuario_1 = require("./Usuario");
 class Empleado extends sequelize_1.Model {
@@ -111,3 +112,5 @@ Empleado.belongsTo(Persona_1.Persona, { foreignKey: "idPersona", as: 'persona' }
 Persona_1.Persona.hasOne(Empleado, {
     foreignKey: 'idPersona',
 });
+Empleado.belongsTo(Estado_1.Estado, { foreignKey: 'idEstado', as: 'estado' });
+Estado_1.Estado.hasMany(Empleado, { foreignKey: 'idEstado', as: 'empleados' });
