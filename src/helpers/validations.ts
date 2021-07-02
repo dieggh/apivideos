@@ -73,9 +73,9 @@ class CapituloValidation extends RequestValidation {
         body("tipo")
             .notEmpty()
             .withMessage("Tipo del recurso requerido"),
-        body("file.base64")
-            .notEmpty()
-            .withMessage("file.base64 requerido"),
+        //body("file.base64")
+        //    .notEmpty()
+        //    .withMessage("file.base64 requerido"),
         body("file.fileName")
             .notEmpty()
             .withMessage("file.fileName requerido"),        

@@ -4,7 +4,7 @@ import { config } from "../config/config";
 
 const buildURL = (capitulos: Capitulo[], id: number, nivelAcceso: number ) =>{
     const token = jwt.sign({
-        id, nivelAcceso
+        idKind: id, nivelAcceso
     }, config.KEY_FILES, {
         expiresIn: '7h'
     });

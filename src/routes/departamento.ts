@@ -1,6 +1,6 @@
 import express from 'express';
 import { param } from 'express-validator';
-import { deleteDepartamento, getDepartamento, getDepartamentoById, getDepartamentoCategorias, patchEnableDepartamento, postDepartamento, putDepartamento } from '../controllers/DepartamentoController';
+import { deleteDepartamento, deleteDepartamentoEmpleadoAsignacion, getDepartamento, getDepartamentoById, getDepartamentoCategorias, getDepartamentoEmpleados, patchEnableDepartamento, postDepartamento, putDepartamento } from '../controllers/DepartamentoController';
 import { validateRequest } from '../helpers/validateRequest';
 import { DepartamentoValidation, PersonaValidation } from '../helpers/validations';
 import { isAuthUser, isAuthAdmin } from '../middlewares/isAuth';
@@ -85,6 +85,32 @@ router.get('/api/departamento/:id/categorias',
     validateRequest,
     policyDepartamento,
     getDepartamentoCategorias
+);
+
+router.get('/api/departamento/:id/empleados',
+    isAuthUser,
+    [
+        param('id')
+            .notEmpty()
+            .isNumeric()
+            .withMessage("El parámetro id es requerido")
+    ],
+    validateRequest,
+    policyDepartamento,
+    getDepartamentoEmpleados
+);
+
+router.delete('/api/departamento/:id/empleados',
+    isAuthUser,
+    [
+        param('id')
+            .notEmpty()
+            .isNumeric()
+            .withMessage("El parámetro id es requerido")
+    ],
+    validateRequest,
+    policyDepartamento,
+    deleteDepartamentoEmpleadoAsignacion
 );
 
 export { router as departamentoRoute }

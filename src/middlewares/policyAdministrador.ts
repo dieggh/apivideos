@@ -5,8 +5,7 @@ import { Administrador } from "../models/Administrador";
 const policyAdmin = async(req: Request, res: Response, next: NextFunction) =>{
     try {
         const { id } = req.params;
-        const { idKind, nivelAcceso } = req.currentUser!;
-        console.log(idKind);
+        const { idKind, nivelAcceso } = req.currentUser!;        
         const admin = await Administrador.findByPk(idKind, {attributes: ["id", "estatus"]})
         
         if(admin && admin.estatus === "1"){

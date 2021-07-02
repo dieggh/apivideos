@@ -7,7 +7,7 @@ import { buildURL } from '../helpers/buildURLFile';
 const postCapitulo = async (req: Request, res: Response) => {
     try {
         const { nombre, descripcion, tipo, duracion, idCategoria, file } = req.body;
-
+        const { idKind, nivelAcceso } = req.currentUser!;
         const categoria = await Categoria.findByPk(idCategoria, {
             attributes: ["id"]
         }
@@ -24,13 +24,17 @@ const postCapitulo = async (req: Request, res: Response) => {
                 ip: req.ip
             });
 
+            
             const directory = `${process.env.FILES_PATH!}/videos/${cap.id}`;
-            const path = await saveFiles(file.base64, file.fileName,  directory);
+            const path = file.base64 ? await saveFiles(file.base64, file.fileName,  directory) : `${directory}/${file.fileName}`;
+            
             if (path) {
                 cap.path = path;
                 await cap.save();
-            }
+            }            
 
+            buildURL([cap], idKind, nivelAcceso);
+            
             res.status(200).json({
                 status: true,
                 capitulo: cap

@@ -1,6 +1,6 @@
 import express from 'express';
 import { param } from 'express-validator';
-import { deleteAdministrador, getAdministradorById, getAdministradores, patchEnableAdministrador, putAdministrador } from '../controllers/AdminContoller';
+import { deleteAdministrador, getAdministradorById, getAdministradores, getAdministradorPerfil, patchEnableAdministrador, putAdministrador } from '../controllers/AdminContoller';
 import { validateRequest } from '../helpers/validateRequest';
 import { PersonaValidation } from '../helpers/validations';
 import { isAuthAdmin, isAuthUser } from '../middlewares/isAuth';
@@ -61,6 +61,11 @@ router.patch('/api/admin/:id',
     ],
     policyAdmin,
     patchEnableAdministrador    
+);
+
+router.get('/api/adminPerfil',
+    isAuthUser,    
+    getAdministradorPerfil
 )
 
 export { router as adminRouter };

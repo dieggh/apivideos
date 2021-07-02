@@ -3,6 +3,9 @@ import { Administrador } from "../models/Administrador";
 import { Categoria } from "../models/Categoria";
 import { Departamento } from "../models/Departamento";
 import { Departamento_Categoria } from "../models/Departamento_Categoria";
+import { Departamento_Empleado } from "../models/Departamento_Empleado";
+import { Empleado } from "../models/Empleado";
+import { Persona } from "../models/Persona";
 
 const postDepartamento = async (req: Request, res: Response) => {
     try {
@@ -147,6 +150,49 @@ const getDepartamentoCategorias = async (req: Request, res: Response) =>{
     }
 }
 
+const getDepartamentoEmpleados = async (req: Request, res: Response) =>{
+    try {
+        const { id } = req.params;
+        const empleados = await Empleado.findAll({
+            where:{              
+                estatus: '1'
+            },            
+            attributes: ["id", "noInterno"],
+            include: [
+                {
+                    model: Departamento,
+                    as: 'Departamento',
+                    attributes: ['id'],
+                    where:{
+                        id: id
+                    },
+                    through:{
+                        attributes: ["id"],
+                        where:{
+                            estatus: '1'
+                        }
+                    }
+                },
+                {
+                    model: Persona, as: 'persona',
+                    attributes: ["nombre", "primerAp", "segundoAp"]
+                }
+            ]
+        });
+        
+        return res.status(200).json({
+            status: true,
+            empleados
+        });
+
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            status: false            
+        });
+    }
+}
+
 const putDepartamento = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
@@ -234,6 +280,26 @@ const deleteDepartamento = async (req: Request, res: Response) => {
     }
 }
 
+const deleteDepartamentoEmpleadoAsignacion = async (req: Request, res: Response) => {
+    try {        
+        const { id } = req.params;
+        const departamentoEmpleado = await Departamento_Empleado.findByPk(id);
+
+        if (departamentoEmpleado) {
+            departamentoEmpleado.estatus = '0';
+            await departamentoEmpleado.save();            
+        }
+
+        return res.status(200).json({
+            status: true,            
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            status: false
+        });
+    }
+}
 
 const patchEnableDepartamento = async (req: Request, res: Response) => {
     try {
@@ -263,4 +329,4 @@ const patchEnableDepartamento = async (req: Request, res: Response) => {
 }
 
 
-export { getDepartamento, postDepartamento, getDepartamentoById, putDepartamento, deleteDepartamento, getDepartamentoCategorias, patchEnableDepartamento };
+export { getDepartamento, postDepartamento, getDepartamentoById, putDepartamento, deleteDepartamento, getDepartamentoCategorias, getDepartamentoEmpleados, patchEnableDepartamento, deleteDepartamentoEmpleadoAsignacion };

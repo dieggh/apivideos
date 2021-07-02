@@ -39,7 +39,6 @@ const postSignIn = async (req: Request, res: Response) => {
         let idkind = null;
         let user: Usuario;
 
-
         const admin = await Administrador.findOne({
             attributes: ["id"],
             where: {
@@ -65,7 +64,7 @@ const postSignIn = async (req: Request, res: Response) => {
             });
         }
 
-
+        console.log(user)
         if (user !== null) {
 
             if (!await Password.compare(user.password, password)) {

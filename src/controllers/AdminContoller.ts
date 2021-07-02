@@ -22,7 +22,7 @@ const putAdministrador = async (req: Request, res: Response) => {
             };            
             if (password || email) {
                 const user = await admin.getUsuario();
-                if (password && password.trim().length > 7) {
+                if (password && password.trim().length > 5) {
                     user.password = await Password.toHash(password); 
                     user.token = null;                   
                 }else if(password){
@@ -75,12 +75,7 @@ const putAdministrador = async (req: Request, res: Response) => {
             await t.commit();
             
             return res.status(200).json({
-                status: true,
-                admin: {
-                    ...admin.get({plain: true}),
-                    persona: { ...persona.get({plain: true}) },
-                    usuario: { ...userUpdated }                  
-                }
+                status: true                
             });
         }
 
@@ -230,10 +225,59 @@ const deleteAdministrador = async ( req: Request, res: Response) => {
     }
 }
 
+const getAdministradorPerfil = async (req: Request, res: Response) =>{
+    try {
+        
+        const { idKind } = req.currentUser!;
+
+        const admin = await Administrador.findByPk(idKind,{
+            include:[
+                {
+                    model: Persona, as: 'persona',
+                    attributes: {
+                        exclude: ["createdAt", "updatedAt", "ip"]
+                    }
+                },
+                {
+                    model: Usuario, as: 'usuario',
+                    attributes:{
+                        exclude: ["password", "token"]
+                    }
+                }
+            ]
+        });
+        
+        if(admin){
+            if(admin.estatus === '0'){
+                admin.usuario!.token = null;
+                await admin.save();
+                return res.status(401).json({
+                    status: false                    
+                });    
+            }
+            return res.status(200).json({
+                status: true,
+                administrador: admin
+            });
+        }else{
+            return res.status(404).json({
+                status: false,
+                message: "Administrador no existe"
+            });
+        }
+
+    } catch (error) {
+        res.status(500).json({
+            status: false
+        });
+    }
+}
+
 export {
     putAdministrador,
     getAdministradores,
     getAdministradorById,
     deleteAdministrador,
-    patchEnableAdministrador
+    patchEnableAdministrador,
+    getAdministradorPerfil
 }

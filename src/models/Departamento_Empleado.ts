@@ -62,7 +62,7 @@ class Departamento_Empleado extends Model<Departamento_EmpleadoAttributes, Depar
     }
   );
 
-  Empleado.belongsToMany(Departamento, { through: 'Departamento_Empleado', foreignKey: 'idEmpleado', as: 'Departamento' });
-  Departamento.belongsToMany(Empleado, { through: 'Departamento_Empleado', foreignKey: 'idDepartamento', as: "Empleados" });
+  Empleado.belongsToMany(Departamento, { through: { model: 'Departamento_Empleado', unique: false }, foreignKey: 'idEmpleado', as: 'Departamento' });
+  Departamento.belongsToMany(Empleado, { through: { model: 'Departamento_Empleado', unique: false } , foreignKey: 'idDepartamento', as: "Empleados" });
 
   export { Departamento_Empleado };

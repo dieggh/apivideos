@@ -65,7 +65,9 @@ const sync = async () => {
         error
     })*/
 
-    await Estado.sync()
+    await Departamento_Empleado.sync({force: true}).catch(error =>{
+        console.log(error)
+    })
 
 }
 

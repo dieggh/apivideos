@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { Administrador } from "../models/Administrador";
 import { Categoria } from "../models/Categoria";
+import { Departamento_Categoria } from "../models/Departamento_Categoria";
 
 const postCategoria = async (req: Request, res: Response) =>{
     try {        
@@ -116,7 +117,7 @@ const getCategoriaById = async (req: Request, res: Response) =>{
         const categoria = await Categoria.findByPk(id);
 
         if(categoria){          
-
+            
             res.status(200).json({
                 status: true,
                 categoria
@@ -146,6 +147,19 @@ const deleteCategoria = async (req: Request, res: Response) =>{
             categoria.estatus = '0';
             await categoria.save();
 
+            const asigns = await Departamento_Categoria.findAll({
+                where: {
+                    idCategoria: id,
+                    estatus: '1'
+                }
+            });
+
+            for (const asig of asigns) {
+                asig.estatus = '0';
+                await asig.save();
+            }
+           
+
             res.status(200).json({
                 status: true
             });
@@ -174,6 +188,18 @@ const pathEnableCategoria = async (req: Request, res: Response) =>{
         if(categoria){
             categoria.estatus = '1';
             await categoria.save();
+
+            const asigns = await Departamento_Categoria.findAll({
+                where: {
+                    idCategoria: id,
+                    estatus: '0'
+                }
+            });
+
+            for (const asig of asigns) {
+                asig.estatus = '1';
+                await asig.save();
+            }
 
             res.status(200).json({
                 status: true
