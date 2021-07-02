@@ -391,6 +391,18 @@ const deleteEmpleado = async (req: Request, res: Response) => {
             user.token = null;
             await user.save();
             await empleado.save();
+
+            const depar = await Departamento_Empleado.findAll({
+                where:{
+                    idEmpleado: id,
+                    estatus: '1'
+                }
+            });
+
+            for (const dep of depar) {
+                dep.estatus = '0';
+                await dep.save();
+            }
         }
 
         return res.status(200).json({
