@@ -17,6 +17,7 @@ import { param } from "express-validator";
 import { Departamento_Empleado } from "./models/Departamento_Empleado";
 import { Departamento_Categoria } from "./models/Departamento_Categoria";
 import { Estado } from "./models/Estado";
+import { Request, Response } from "express";
 
 
 const express = require('express');
@@ -35,6 +36,8 @@ app.use('/files/:token/:id',
     policyFiles,
     express.static(path.join(__dirname, '../dist/public'))
 );
+
+app.use(express.static(path.join(__dirname, '../dist/public/sistema')));
 
 const sync = async () => {
 
@@ -85,6 +88,15 @@ app.use(adminRouter);
 app.use(categoriaRouter);
 app.use(capituloRouter);
 app.use(cors(), empleadoMobileRouter);
+
+app.get('/*', function (req: Request, res: Response) {
+    
+    res.sendFile(path.join(__dirname, '../dist/public/sistema/index.html'), function (err) {
+        if (err) {
+            res.status(500).send(err)
+        }
+    });
+});
 //sequelize.sync().then(onfulfilled =>{
 app.listen(4001);
 console.log("corriendo puerto 4001");
