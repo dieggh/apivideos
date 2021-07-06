@@ -1,6 +1,7 @@
 import { Model ,Optional, DataTypes, Association, HasOneCreateAssociationMixin, HasOneGetAssociationMixin } from 'sequelize';
 import { sequelize } from './../utils/database';
 import { Administrador } from './Administrador';
+import { Capitulo } from './Capitulo';
 import { Departamento } from './Departamento';
 import { Estado } from './Estado';
 import { Persona } from './Persona';
@@ -43,6 +44,7 @@ class Empleado extends Model<EmpleadoAttributes, EmpleadoCreationAttributes>
     public readonly persona?: Persona; // Note this is optional since it's only populated when explicitly requested in code
     public readonly administrador?: Administrador; // Note this is optional since it's only populated when explicitly requested in code
     public readonly Departamento?: Departamento[]; // Note this is optional since it's only populated when explicitly requested in code
+    public readonly Capitulos?: Capitulo[];
 
     public getPersona!: HasOneGetAssociationMixin<Persona>;
     public getUsuario!: HasOneGetAssociationMixin<Usuario>;

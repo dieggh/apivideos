@@ -18,8 +18,8 @@ import { Password } from "../utils/password";
 const postEmpleado = async (req: Request, res: Response) => {
     const t = await sequelize.transaction();
     try {
-        const { persona: { nombre, primerAp, segundoAp, telefono }, usuario: { email, password }, idDepartamento,  noInterno,
-            calle, cp, numExt, numInt, ciudad, colonia, idEstado 
+        const { persona: { nombre, primerAp, segundoAp, telefono }, usuario: { email, password }, idDepartamento, noInterno,
+            calle, cp, numExt, numInt, ciudad, colonia, idEstado
         } = req.body;
         const { idKind } = req.currentUser!;
 
@@ -46,7 +46,7 @@ const postEmpleado = async (req: Request, res: Response) => {
             idAdministrador: idKind
         }, {
             transaction: t
-        });        
+        });
 
         const hashedPass = await Password.toHash(password);
         const usuario = await empleado.createUsuario({
@@ -66,24 +66,24 @@ const postEmpleado = async (req: Request, res: Response) => {
                 ip: req.ip
             }, {
                 transaction: t
-            });                     
+            });
             addDepartamento = true;
         }
-        
+
 
         const empleadoCreated = {
-            ...empleado.get( {plain: true} ),        
+            ...empleado.get({ plain: true }),
             Departamento: depar ? [
                 {
                     id: idDepartamento,
                     nombre: depar.nombre
                 }
             ] : [],
-            persona:{
-                ...persona.get( {plain: true} )
+            persona: {
+                ...persona.get({ plain: true })
             },
-            usuario:{
-                ...usuario.get( {plain: true} ),
+            usuario: {
+                ...usuario.get({ plain: true }),
                 password: null
             }
         }
@@ -107,30 +107,32 @@ const postEmpleado = async (req: Request, res: Response) => {
 const getEmpleados = async (req: Request, res: Response) => {
     try {
         const { idKind, nivelAcceso } = req.currentUser!;
+
+        const incluir = [{
+                            model: Usuario, as: 'usuario'
+                        },
+                        {
+                            model: Persona, as: 'persona'
+                        },
+                        {
+                            model: Estado, as: 'estado'
+                        },
+                        {
+                            model: Departamento, as: 'Departamento',
+                            attributes: ["nombre", "id"],
+                            through: {
+                                attributes: [],
+                                where: {
+                                    estatus: '1'
+                                }
+                            }
+                        }];
         if (nivelAcceso === 0) {
             const empleados = await Empleado.findAll({
-                include:[
-                    {
-                        model: Usuario, as: 'usuario'
-                    },
-                    {
-                        model: Persona, as: 'persona'
-                    },
-                    {
-                        model: Estado, as: 'estado'
-                    },
-                    {
-                        model: Departamento, as: 'Departamento',
-                        attributes: ["nombre", "id"],
-                        through:{
-                            attributes: [],
-                            where:{
-                                estatus: '1'
-                            }
-                        }
-                    }
+                include: [
+                    ...incluir
                 ]
-            });            
+            });
 
             return res.status(200).json({
                 status: true,
@@ -142,14 +144,8 @@ const getEmpleados = async (req: Request, res: Response) => {
             if (admin && admin.estatus === '1') {
                 const empleados = await admin.getEmpleados({
                     include: [
-                        {
-                            model: Persona, as: 'persona',
-                        }, {
-                            model: Usuario, as: 'usuario',
-                            attributes: {
-                                exclude: ["password", "token"]
-                            }
-                        }]
+                        ...incluir
+                    ]
                 });
                 return res.status(200).json({
                     status: true,
@@ -173,16 +169,16 @@ const getEmpleados = async (req: Request, res: Response) => {
 }
 
 const getEstados = async (req: Request, res: Response) => {
-    try {        
-        
+    try {
+
         const estados = await Estado.findAll();
 
-       
+
         return res.status(200).json({
-                status: true,
-                estados
-            })
-       
+            status: true,
+            estados
+        })
+
 
     } catch (error) {
         res.status(500).json({
@@ -250,6 +246,88 @@ const getEmpleadoById = async (req: Request, res: Response) => {
     }
 }
 
+const getEmpleadoCapitulos = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;        
+
+        const empCap = await Empleado.findByPk(id, {
+            attributes: ["id"],             
+            include: {
+                model: Capitulo,
+                through: {
+                    attributes: ["id","fechaVista", "fechaConclusion"]
+                }
+            }
+        });
+
+        if(empCap){
+            res.status(200).json({
+                status: true,
+                empCap: empCap.Capitulos
+            });
+        }else{
+            res.status(404).json({
+                status: true,
+                empCap: 'Empleado no Existe'
+            })
+        }
+            
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            status: false
+        });
+    }
+}
+
+const getEmpleadoCapacitaciones = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;        
+
+        const empCapac = await Empleado.findByPk(id, {
+            attributes: ["id"],             
+            include: {
+                model: Departamento,
+                as: 'Departamento',
+                attributes: ["nombre", "id"],
+                through:{
+                    attributes: ["estatus", "id"]
+                },                
+                include: [
+                    {
+                        model: Categoria,
+                        attributes: ["id","nombre", "estatus"],
+                        through:{
+                            attributes: ["id"],
+                            where: {
+                                estatus: '1'
+                            }
+                        }                       
+                    }
+                ]               
+            }
+        });
+
+        if(empCapac){
+            res.status(200).json({
+                status: true,
+                empCapac: empCapac
+            });
+        }else{
+            res.status(404).json({
+                status: true,
+                empCap: 'Empleado no Existe'
+            })
+        }
+            
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            status: false
+        });
+    }
+}
+
 const putEmpleado = async (req: Request, res: Response) => {
     const t = await sequelize.transaction();
     try {
@@ -263,7 +341,7 @@ const putEmpleado = async (req: Request, res: Response) => {
         if (empleado) {
             const userUpdated = {
                 id: 0,
-                email: email             
+                email: email
             };
             if (password || email) {
 
@@ -271,7 +349,7 @@ const putEmpleado = async (req: Request, res: Response) => {
                     transaction: t
                 });
 
-                if (password && password.trim().length > 7) {
+                if (password && password.trim().length > 5) {
                     user.password = await Password.toHash(password);
                     user.token = null;
                     await user.save({ transaction: t });
@@ -279,7 +357,7 @@ const putEmpleado = async (req: Request, res: Response) => {
                     await t.rollback();
                     return res.status(400).json({
                         status: false,
-                        message: "La contraseña debe de tener al menos 8 carácteres"
+                        message: "La contraseña debe de tener al menos 6 carácteres"
                     });
                 }
 
@@ -300,7 +378,7 @@ const putEmpleado = async (req: Request, res: Response) => {
                     if (!inUse) {
                         user.email = email;
                         await user.save({ transaction: t });
-                       
+
                     } else {
                         await t.rollback();
                         return res.status(400).json({
@@ -308,7 +386,7 @@ const putEmpleado = async (req: Request, res: Response) => {
                             message: "El Correo Electrónico ya está en Uso"
                         });
                     }
-                    
+
                 }
                 userUpdated.email = user.email;
                 userUpdated.id = user.id;
@@ -337,14 +415,14 @@ const putEmpleado = async (req: Request, res: Response) => {
             persona.ip = req.ip;
 
             await persona.save({ transaction: t });
-            
+
             const departamento = await Departamento.findByPk(idDepartamento);
-            
-            if(departamento){
+
+            if (departamento) {
                 await postAsignarDepartamento(parseInt(id), req.ip, departamento, t);
-            }else{
+            } else {
                 await t.rollback();
-                return res.status(404).json({status: false, message: "Departamento no Existe"});
+                return res.status(404).json({ status: false, message: "Departamento no Existe" });
             }
 
             await t.commit();
@@ -352,17 +430,17 @@ const putEmpleado = async (req: Request, res: Response) => {
             res.status(200).json({
                 status: true,
                 empleado: {
-                    ...empleado.get( {plain: true} ),        
+                    ...empleado.get({ plain: true }),
                     Departamento: [
                         {
                             id: departamento.id,
                             nombre: departamento.nombre
                         }
                     ],
-                    persona:{
-                        ...persona.get( {plain: true} )
+                    persona: {
+                        ...persona.get({ plain: true })
                     },
-                    usuario:{
+                    usuario: {
                         ...userUpdated,
                         password: null
                     }
@@ -393,7 +471,7 @@ const deleteEmpleado = async (req: Request, res: Response) => {
             await empleado.save();
 
             const depar = await Departamento_Empleado.findAll({
-                where:{
+                where: {
                     idEmpleado: id,
                     estatus: '1'
                 }
@@ -436,10 +514,10 @@ const postAsignarDepartamento = async (id: number, ip: string, departamento: Dep
             idEmpleado: id,
             estatus: '1',
             ip: ip
-        }, {transaction: t});
+        }, { transaction: t });
 
         return true;
-            
+
     } catch (error) {
         console.log(error)
         throw error;
@@ -502,7 +580,7 @@ const getCapitulos = async (req: Request, res: Response) => {
                         through: {
                             attributes: []
                         },
-                        where:{
+                        where: {
                             estatus: '1'
                         },
                         attributes: {
@@ -514,10 +592,10 @@ const getCapitulos = async (req: Request, res: Response) => {
                                 attributes: {
                                     exclude: ["createdAt", "updatedAt", "ip"]
                                 },
-                                where:{
+                                where: {
                                     estatus: '1'
                                 },
-                            }                           
+                            }
                         ]
                     }
                 ]
@@ -605,21 +683,21 @@ const getCapituloById = async (req: Request, res: Response) => {
         const { id } = req.params;
 
         const cap = await Capitulo.findByPk(id);
-    
+
         cap!.path = `${process.env.SERVE_FILES!}/files/${id}/${cap!.path}`;
-        if(cap){
-            buildURL([cap], idKind, nivelAcceso );            
+        if (cap) {
+            buildURL([cap], idKind, nivelAcceso);
             return res.status(200).json({
                 status: true,
                 url: cap.path
             });
-        }else{
+        } else {
             return res.status(404).json({
                 status: false,
                 message: "Capítulo no Existe"
             });
         }
-        
+
         /*enviar el archivo directamente res.status(200).sendFile( 'videos/1/cronometro4xd.mp4', {
             root: 'dist/public'
         });*/
@@ -633,17 +711,17 @@ const getCapituloById = async (req: Request, res: Response) => {
 }
 
 const patchEnableEmpleado = async (req: Request, res: Response) => {
-    
+
     try {
-        const { id } = req.params;        
+        const { id } = req.params;
 
         const empleado = await Empleado.findByPk(id);
 
         if (empleado) {
             empleado.estatus = '1';
-            await empleado.save();                       
+            await empleado.save();
             return res.status(200).json({
-                status: true                
+                status: true
             });
         }
 
@@ -653,7 +731,7 @@ const patchEnableEmpleado = async (req: Request, res: Response) => {
         })
 
     } catch (error) {
-        
+
         res.status(500).json({
             status: false
         });
@@ -674,5 +752,7 @@ export {
     putFinalizarCapitulo,
     getCapituloById,
     getEstados,
-    patchEnableEmpleado
+    patchEnableEmpleado,
+    getEmpleadoCapitulos,
+    getEmpleadoCapacitaciones
 }

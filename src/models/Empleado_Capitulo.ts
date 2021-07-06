@@ -68,4 +68,5 @@ Empleado_Capitulo.init({
 Empleado.belongsToMany(Capitulo ,{ through: 'Empleado_Capitulo', foreignKey: 'idEmpleado' });
 Capitulo.belongsToMany(Empleado, { through: 'Empleado_Capitulo', foreignKey: 'idCapitulo' });
 
+
 export { Empleado_Capitulo };

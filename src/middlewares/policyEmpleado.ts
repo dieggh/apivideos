@@ -27,8 +27,7 @@ const policyEmpleado = async(req: Request, res: Response, next: NextFunction) =>
             if(nivelAcceso === 0){
                 return next();
             }
-            console.log(idKind);
-            console.log(emp.id);
+            
             if(emp.idAdministrador === idKind || emp.id === idKind){
                 next();
             }else{

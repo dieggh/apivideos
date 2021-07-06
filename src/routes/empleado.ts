@@ -1,6 +1,6 @@
 import express from 'express';
 import { body, param } from 'express-validator';
-import { deleteEmpleado, getEmpleadoById, getEmpleados, getEstados, patchEnableEmpleado, postAsignarDepartamento, postEmpleado, putEmpleado } from '../controllers/EmpleadoController';
+import { deleteEmpleado, getEmpleadoById, getEmpleadoCapacitaciones, getEmpleadoCapitulos, getEmpleados, getEstados, patchEnableEmpleado, postAsignarDepartamento, postEmpleado, putEmpleado } from '../controllers/EmpleadoController';
 
 import { validateRequest } from '../helpers/validateRequest';
 import { PersonaValidation, UsuarioValidation } from '../helpers/validations';
@@ -44,6 +44,32 @@ router.get('/api/empleado/:id',
     ],
     validateRequest,
     getEmpleadoById
+);
+
+router.get('/api/empleado/:id/capitulos',
+    isAuthUser,
+    [
+        param('id')
+            .notEmpty()
+            .isNumeric()
+            .withMessage("El parámetro id es requerido y debe ser entero")
+    ],
+    validateRequest,
+    policyEmpleado,
+    getEmpleadoCapitulos
+);
+
+router.get('/api/empleado/:id/capacitaciones',
+    isAuthUser,
+    [
+        param('id')
+            .notEmpty()
+            .isNumeric()
+            .withMessage("El parámetro id es requerido y debe ser entero")
+    ],
+    validateRequest,
+    policyEmpleado,
+    getEmpleadoCapacitaciones
 );
 
 router.put('/api/empleado/:id',

@@ -134,6 +134,7 @@ const postSignInMobile = async (req: Request, res: Response) => {
         });
 
         if (emp === null) {
+            
             return res.status(403).json({
                 status: false,
                 message: "Usuario o contraseña incorrecta",
@@ -315,7 +316,7 @@ const postRefreshToken = async (req: Request, res: Response) => {
                         const typeUser = user.nivelAcceso === 0 ? "superAdmin" : user.nivelAcceso === 1 ? "admin" : "empleado";
                         
                         const token = jwt.sign({ email: user.email, id: user.id, nivelAcceso: user.nivelAcceso, typeUser, 
-                            idKind: user.Empleado ? user.id : user.Administrador?.id }, config.KEY_SECRET, { expiresIn: '12h' });
+                            idKind: user.Empleado ? user.Empleado.id : user.Administrador?.id }, config.KEY_SECRET, { expiresIn: '12h' });
 
                         const newRefreshToken = jwt.sign({ id: user.id, nivelAcceso: user.nivelAcceso }, config.KEY_SECRET, { expiresIn: '30 days' });
                         user.token = newRefreshToken;

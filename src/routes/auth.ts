@@ -18,6 +18,7 @@ router.post('/api/auth/mobile/signin', cors(),
             })
             .withMessage("Contraseña Requerida"),
         body("email")
+            .not()
             .isEmpty().withMessage("Correo Electrónico requerido")
             .isEmail()
             .withMessage("Correo Electrónico no válido"),
