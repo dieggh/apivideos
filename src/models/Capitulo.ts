@@ -2,7 +2,7 @@ import { Model ,Optional, DataTypes, BelongsToSetAssociationMixin } from 'sequel
 import { sequelize } from '../utils/database';
 import { Categoria } from './Categoria';
 
-interface CapituloAttributes{    
+export interface CapituloAttributes{    
     id: number;
     nombre: string;
     descripcion: string | null;

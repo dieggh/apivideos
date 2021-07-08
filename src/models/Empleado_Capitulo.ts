@@ -4,7 +4,7 @@ import { Capitulo } from './Capitulo';
 import { Empleado } from './Empleado';
 
 
-interface Empleado_CapituloAttributes {
+export interface Empleado_CapituloAttributes {
   id: number;
   fechaVista: Date | null;
   fechaConclusion: Date | null

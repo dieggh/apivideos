@@ -46,13 +46,17 @@ router.get('/api/empleado/:id',
     getEmpleadoById
 );
 
-router.get('/api/empleado/:id/capitulos',
+router.get('/api/empleado/:id/capitulos/:idCategoria',
     isAuthUser,
     [
         param('id')
             .notEmpty()
             .isNumeric()
-            .withMessage("El parámetro id es requerido y debe ser entero")
+            .withMessage("El parámetro idEmpleado es requerido y debe ser entero"),
+        param('idCategoria')
+            .notEmpty()
+            .isNumeric()
+            .withMessage("El parámetro idEmpleado es requerido y debe ser entero")
     ],
     validateRequest,
     policyEmpleado,

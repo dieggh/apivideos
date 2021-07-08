@@ -30,7 +30,7 @@ class Categoria extends Model<CategoriaAttributes, CategoriaCreationAttributes>
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
-  public readonly capitulos?: Persona; // Note this is optional since it's only populated when explicitly requested in code
+  public readonly capitulos?: Capitulo[]; // Note this is optional since it's only populated when explicitly requested in code
   public readonly administrador?: Administrador; // Note this is optional since it's only populated when explicitly requested in code
   public readonly Departamentos?: Departamento[]; // Note this is optional since it's only populated when explicitly requested in code
 }

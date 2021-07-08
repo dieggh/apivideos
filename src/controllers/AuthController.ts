@@ -55,6 +55,7 @@ const postSignIn = async (req: Request, res: Response) => {
         });
 
         if (admin !== null) {
+            
             idkind = admin.id;
             user = admin.usuario!;
         } else {
@@ -63,8 +64,7 @@ const postSignIn = async (req: Request, res: Response) => {
                 message: "Usuario o contraseña incorrecta",
             });
         }
-
-        console.log(user)
+        
         if (user !== null) {
 
             if (!await Password.compare(user.password, password)) {
@@ -77,7 +77,7 @@ const postSignIn = async (req: Request, res: Response) => {
 
             const typeUser = user.nivelAcceso === 0 ? "superAdmin" : "admin";
             
-            const token = jwt.sign({ email: user.email, id: user.id, nivelAcceso: user.nivelAcceso, typeUser, idKind: idkind }, config.KEY_SECRET, { expiresIn: '12h' });
+            const token = jwt.sign({ email: user.email, id: user.id, nivelAcceso: user.nivelAcceso, typeUser, idKind: idkind }, config.KEY_SECRET, { expiresIn: '5s' });
 
             const refreshToken = jwt.sign({ id: user.id, nivelAcceso: user.nivelAcceso }, config.KEY_SECRET, { expiresIn: '15 days' });
 
@@ -301,22 +301,24 @@ const postRefreshToken = async (req: Request, res: Response) => {
                     const user = await Usuario.findByPk(payload.id, {
                         attributes: ["email", "id", "nivelAcceso", "estatus", "token"],
                         include: {
-                            model:  payload.nivelAcceso === 0 ? Administrador : Empleado,                             
+                            model:  payload.nivelAcceso < 2 ? Administrador : Empleado,                             
                             attributes: ["id"]
                         }
                     });
 
                     if (user && user.estatus === "1") {
+                        
                         if (user.token !== refreshToken.replace("Bearer ", "")) {
                             return res.status(403).send({
                                 status: false,
                                 message: "Token inválido"
                             });
                         }
+
                         const typeUser = user.nivelAcceso === 0 ? "superAdmin" : user.nivelAcceso === 1 ? "admin" : "empleado";
                         
                         const token = jwt.sign({ email: user.email, id: user.id, nivelAcceso: user.nivelAcceso, typeUser, 
-                            idKind: user.Empleado ? user.Empleado.id : user.Administrador?.id }, config.KEY_SECRET, { expiresIn: '12h' });
+                            idKind: user.Empleado ? user.Empleado.id : user.Administrador?.id }, config.KEY_SECRET, { expiresIn: '5s' });
 
                         const newRefreshToken = jwt.sign({ id: user.id, nivelAcceso: user.nivelAcceso }, config.KEY_SECRET, { expiresIn: '30 days' });
                         user.token = newRefreshToken;
@@ -324,9 +326,8 @@ const postRefreshToken = async (req: Request, res: Response) => {
                         return res.status(200).send({
                             status: true,
                             token: token,
-                            refreshToken: newRefreshToken
-
-                        })
+                            refreshToken: newRefreshToken                            
+                        });
                     } else {
                         res.status(403).json({
                             status: false,

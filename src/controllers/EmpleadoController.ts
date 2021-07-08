@@ -2,18 +2,22 @@ import { Request, Response } from "express";
 import { Transaction } from "sequelize/types";
 import { buildURL } from "../helpers/buildURLFile";
 import { Administrador } from "../models/Administrador";
-import { Capitulo } from "../models/Capitulo";
+import { Capitulo, CapituloAttributes } from '../models/Capitulo';
 import { Categoria } from "../models/Categoria";
 import { Departamento } from "../models/Departamento";
 import { Departamento_Categoria } from "../models/Departamento_Categoria";
 import { Departamento_Empleado } from "../models/Departamento_Empleado";
 import { Empleado } from "../models/Empleado";
-import { Empleado_Capitulo } from "../models/Empleado_Capitulo";
+import { Empleado_Capitulo, Empleado_CapituloAttributes } from '../models/Empleado_Capitulo';
 import { Estado } from "../models/Estado";
 import { Persona } from "../models/Persona";
 import { Usuario } from "../models/Usuario";
 import { sequelize } from "../utils/database";
 import { Password } from "../utils/password";
+
+export interface Capitulo_Empleado_Categoria extends CapituloAttributes {
+    Empleado_Capitulo: { id: number, fechaVista: null, fechaConclusion: null } 
+}
 
 const postEmpleado = async (req: Request, res: Response) => {
     const t = await sequelize.transaction();
@@ -248,22 +252,54 @@ const getEmpleadoById = async (req: Request, res: Response) => {
 
 const getEmpleadoCapitulos = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;        
+        const { id, idCategoria } = req.params;        
+        const { idKind, nivelAcceso } = req.currentUser!;                
 
         const empCap = await Empleado.findByPk(id, {
             attributes: ["id"],             
             include: {
-                model: Capitulo,
+                model: Capitulo,                
+                attributes: {
+                    exclude: ["ip"]
+                },
+                where:{
+                    idCategoria: idCategoria,
+                    estatus: '1'
+                },
                 through: {
-                    attributes: ["id","fechaVista", "fechaConclusion"]
+                    attributes: ["id","fechaVista", "fechaConclusion"],                    
                 }
             }
         });
 
+        const capsCategoria = await Categoria.findByPk(idCategoria,{
+            include:{
+                model: Capitulo,
+                as: 'capitulos'
+            }
+        });
+
+        const capitulos: Capitulo_Empleado_Categoria[] = [];
+      
+
         if(empCap){
+
+            for (const cap of capsCategoria?.capitulos!) {
+            
+                const capWithRelacion = empCap.Capitulos?.find(x => x.id === cap.id);
+                if(!capWithRelacion){
+                    capitulos.push({ ...cap.get({plain: true}), Empleado_Capitulo: {id: 0,fechaVista: null, fechaConclusion: null, } });
+                }else{
+                    const capEmpCat = capWithRelacion.get({plain: true}) as Capitulo_Empleado_Categoria;
+                    capitulos.push({ ...capEmpCat });
+                }
+            }
+            
+    
+            buildURL(capitulos!, idKind , nivelAcceso );
             res.status(200).json({
                 status: true,
-                empCap: empCap.Capitulos
+                empCap: capitulos                
             });
         }else{
             res.status(404).json({
